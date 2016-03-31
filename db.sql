@@ -24,6 +24,7 @@ CREATE TABLE Friends (
     user_id     NUMBER(10) NOT NULL,
     friend_id   NUMBER(10) NOT NULL,
     status      NUMBER(1) NOT NULL,
+    established TIMESTAMP,
     CONSTRAINT Profile_UID_FK FOREIGN KEY (user_id) REFERENCES Profiles(user_id),
     CONSTRAINT Profile_FID_FK FOREIGN KEY (friend_id) REFERENCES Profiles(user_id),
     CONSTRAINT Friends_PK PRIMARY KEY (user_id, friend_id)
@@ -32,7 +33,8 @@ CREATE TABLE Friends (
 CREATE TABLE Groups (
     group_id    NUMBER(10) PRIMARY KEY,
     name        VARCHAR2(100) NOT NULL,
-    description VARCHAR2(1024)
+    description VARCHAR2(1024),
+    capacity    NUMBER(10)
 );
 
 CREATE TABLE Members (
@@ -47,8 +49,10 @@ CREATE TABLE Conversations (
     CONSTRAINT Conversations_PK PRIMARY KEY (conv_id, user_id)
 );
 
+-- TODO: Add check for 100 length limit on msg_text
 CREATE TABLE Messages (
     msg_id      NUMBER(10) PRIMARY KEY,
+    subject     VARCHAR2(100),
     sender_id   NUMBER(10) NOT NULL,
     time_sent   TIMESTAMP,
     time_read   TIMESTAMP,
