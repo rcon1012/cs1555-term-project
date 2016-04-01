@@ -1,3 +1,7 @@
+-- Authors: Zach Gannon, Jon Povirk, Ryan Conley
+-- Pitt ID: zjg7, jmp180, rgc11
+-- Project: CS1555 - Milestone 1
+
 -- File sets up the db schema
 
 DROP TABLE Profiles CASCADE CONSTRAINTS;
@@ -19,7 +23,10 @@ CREATE TABLE Profiles (
 
 -- user_id: id of the person in question
 -- frined_id: id of friend of person in question
--- status: flag to denote pending(0) or established(1)
+-- status: flag to denote no relationship(0), pending(1) or established(2)
+-- TODO: Add check for existing F(A, B) before adding F(B, A),
+-- where F(uid, fid) = establish friendship of uid and fid. We want F to
+-- be bilateral, which is accomplished by this check.
 CREATE TABLE Friends (
     user_id     NUMBER(10) NOT NULL,
     friend_id   NUMBER(10) NOT NULL,
@@ -49,16 +56,16 @@ CREATE TABLE Conversations (
     CONSTRAINT Conversations_PK PRIMARY KEY (conv_id, user_id)
 );
 
--- TODO: Add check for 100 length limit on msg_text
+-- type: flag to denote sent to single user(1), or the whole group(2)
+-- recip
 CREATE TABLE Messages (
     msg_id      NUMBER(10) PRIMARY KEY,
     subject     VARCHAR2(100),
     sender_id   NUMBER(10) NOT NULL,
     time_sent   TIMESTAMP,
-    time_read   TIMESTAMP,
     conv_id     NUMBER(10) NOT NULL,
-    msg_text    VARCHAR2(1024),
-    spam        NUMBER(1),
+    msg_text    VARCHAR2(100),
+    type        NUMBER(1),
     CONSTRAINT Messages_FK_Profiles FOREIGN KEY (sender_id) REFERENCES Profiles(user_id),
     CONSTRAINT Messages_FK_Conversations FOREIGN KEY (conv_id, sender_id) REFERENCES Conversations(conv_id, user_id)
 );
