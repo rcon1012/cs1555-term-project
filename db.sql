@@ -13,7 +13,7 @@ DROP TABLE Conversations CASCADE CONSTRAINTS;
 DROP TABLE Recipients CASCADE CONSTRAINTS;
 
 CREATE TABLE Profiles (
-    user_ID     NUMBER(10) PRIMARY KEY,
+    user_id     NUMBER(10) PRIMARY KEY,
     fname       VARCHAR2(100),
     lname       VARCHAR2(100),
     email       VARCHAR2(100),
@@ -28,26 +28,28 @@ CREATE TABLE Profiles (
 -- where F(uid, fid) = establish friendship of uid and fid. We want F to
 -- be bilateral, which is accomplished by this check.
 CREATE TABLE Friends (
-    user_id     NUMBER(10) NOT NULL,
-    friend_id   NUMBER(10) NOT NULL,
+    friend1_id     NUMBER(10) NOT NULL,
+    friend2_id   NUMBER(10) NOT NULL,
     status      NUMBER(1) NOT NULL,
     established TIMESTAMP,
-    CONSTRAINT Profile_UID_FK FOREIGN KEY (user_id) REFERENCES Profiles(user_id),
-    CONSTRAINT Profile_FID_FK FOREIGN KEY (friend_id) REFERENCES Profiles(user_id),
-    CONSTRAINT Friends_PK PRIMARY KEY (user_id, friend_id)
+    CONSTRAINT Profile_UID_FK FOREIGN KEY (friend1_id) REFERENCES Profiles(user_id),
+    CONSTRAINT Profile_FID_FK FOREIGN KEY (friend2_id) REFERENCES Profiles(user_id),
+    CONSTRAINT Friends_PK PRIMARY KEY (friend1_id, friend2_id)
 );
 
 CREATE TABLE Groups (
     group_id    NUMBER(10) PRIMARY KEY,
     name        VARCHAR2(100) NOT NULL,
     description VARCHAR2(1024),
-    capacity    NUMBER(10)
+    capacity    NUMBER(10) NOT NULL
 );
 
 CREATE TABLE Members (
-    group_id    NUMBER(10) NOT NULL,
-    user_id     NUMBER(10) NOT NULL,
+    group_id    NUMBER(10),
+    user_id     NUMBER(10),
     CONSTRAINT Members_PK PRIMARY KEY (group_id, user_id)
+    CONSTRAINT Members_Groups_FK FOREIGN KEY (group_id) REFERENCES Groups(group_id),
+    CONSTRAINT Members_Profiles_FK FOREIGN KEY (user_id) REFERENCES Profiles(user_id)
 );
 
 CREATE TABLE Conversations (
