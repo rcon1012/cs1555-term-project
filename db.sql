@@ -63,3 +63,22 @@ CREATE TABLE Messages (
     type        NUMBER(1),
     CONSTRAINT Messages_FK_Profiles FOREIGN KEY (sender_id) REFERENCES Profiles(user_id)
 );
+
+-----
+
+-- ALTERNATIVE SCHEMA
+-- same as above, however, there is no recipients or conversation table
+-- only the messages table is altered
+CREATE TABLE Messages (
+    msg_id      NUMBER(10) PRIMARY KEY,
+    subject     VARCHAR2(100),
+    sender_id   NUMBER(10) NOT NULL,
+    time_sent   TIMESTAMP,
+    msg_text    VARCHAR2(100),
+    receiver_id_user   NUMBER(10), 
+    receiver_id_group   NUMBER(10),
+    CONSTRAINT Messages_FK_Profiles_Sender FOREIGN KEY (sender_id) REFERENCES Profiles(user_id),
+    CONSTRAINT Messages_FK_Profiles_Receiver FOREIGN KEY (receiver_id_user) REFERENCES Profiles(user_id),
+    CONSTRANT Messages_FK_Groups FOREIGN KEY (receiver_id_group) REFERENCES Groups(group_id)
+    -- add a check that exactly one field of receiver_id_user or receiver_id_group is not null
+); 
