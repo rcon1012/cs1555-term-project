@@ -61,5 +61,24 @@ CREATE TABLE Messages (
     conv_id     NUMBER(10) NOT NULL,
     msg_text    VARCHAR2(100),
     type        NUMBER(1),
-    CONSTRAINT Messages_FK_Profiles FOREIGN KEY (sender_id) REFERENCES Profiles(user_id)
+    CONSTRAINT Messages_FK_Profiles FOREIGN KEY (sender_id) REFERENCES Profiles(user_id),
+    CONSTRAINT Messages_Type_Check CHECK (type BETWEEN 1 AND 2)
 );
+
+CREATE OR REPLACE TRIGGER Membership_Trigger
+AFTER INSERT OR UPDATE ON Messages
+FOR EACH ROW
+WHEN (NEW.type = 2)
+DECLARE
+    cnt NUMBER;
+BEGIN
+    SELECT COUNT(Members.user_id)
+    INTO cnt
+    FROM Members
+    WHERE Members.user_id = :NEW.sender_id AND Members.group_id = :NEW.recip_id;
+
+    IF (cnt < 1) THEN
+        RAISE_APPLICATION_ERROR( -20001, 'Not a member of the group!' );
+    END IF;
+END;
+/
