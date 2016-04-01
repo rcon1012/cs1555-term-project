@@ -9,8 +9,6 @@ DROP TABLE Friends CASCADE CONSTRAINTS;
 DROP TABLE Groups CASCADE CONSTRAINTS;
 DROP TABLE Members CASCADE CONSTRAINTS;
 DROP TABLE Messages CASCADE CONSTRAINTS;
-DROP TABLE Conversations CASCADE CONSTRAINTS;
-DROP TABLE Recipients CASCADE CONSTRAINTS;
 
 CREATE TABLE Profiles (
     user_id     NUMBER(10) PRIMARY KEY,
@@ -28,8 +26,8 @@ CREATE TABLE Profiles (
 -- where F(uid, fid) = establish friendship of uid and fid. We want F to
 -- be bilateral, which is accomplished by this check.
 CREATE TABLE Friends (
-    friend1_id     NUMBER(10) NOT NULL,
-    friend2_id   NUMBER(10) NOT NULL,
+    friend1_id  NUMBER(10) NOT NULL,
+    friend2_id  NUMBER(10) NOT NULL,
     status      NUMBER(1) NOT NULL,
     established TIMESTAMP,
     CONSTRAINT Profile_UID_FK FOREIGN KEY (friend1_id) REFERENCES Profiles(user_id),
@@ -47,35 +45,21 @@ CREATE TABLE Groups (
 CREATE TABLE Members (
     group_id    NUMBER(10),
     user_id     NUMBER(10),
-    CONSTRAINT Members_PK PRIMARY KEY (group_id, user_id)
+    CONSTRAINT Members_PK PRIMARY KEY (group_id, user_id),
     CONSTRAINT Members_Groups_FK FOREIGN KEY (group_id) REFERENCES Groups(group_id),
     CONSTRAINT Members_Profiles_FK FOREIGN KEY (user_id) REFERENCES Profiles(user_id)
 );
 
-CREATE TABLE Conversations (
-    conv_id     NUMBER(10) NOT NULL,
-    user_id   NUMBER(10) NOT NULL,
-    CONSTRAINT Conversations_PK PRIMARY KEY (conv_id, user_id)
-);
-
 -- type: flag to denote sent to single user(1), or the whole group(2)
--- recip
+-- recip: single user or group id, depending upon type
 CREATE TABLE Messages (
     msg_id      NUMBER(10) PRIMARY KEY,
     subject     VARCHAR2(100),
     sender_id   NUMBER(10) NOT NULL,
+    recip_id    NUMBER(10) NOT NULL,
     time_sent   TIMESTAMP,
     conv_id     NUMBER(10) NOT NULL,
     msg_text    VARCHAR2(100),
     type        NUMBER(1),
-    CONSTRAINT Messages_FK_Profiles FOREIGN KEY (sender_id) REFERENCES Profiles(user_id),
-    CONSTRAINT Messages_FK_Conversations FOREIGN KEY (conv_id, sender_id) REFERENCES Conversations(conv_id, user_id)
-);
-
-CREATE TABLE Recipients (
-    msg_id      NUMBER(10) NOT NULL,
-    user_id     NUMBER(10) NOT NULL,
-    CONSTRAINT Recipients_PK PRIMARY KEY (msg_id, user_id),
-    CONSTRAINT Recipients_FK_Profiles FOREIGN KEY (user_id) REFERENCES Profiles(user_id),
-    CONSTRAINT Recipients_FK_Messages FOREIGN KEY (msg_id) REFERENCES Messages(msg_id)
+    CONSTRAINT Messages_FK_Profiles FOREIGN KEY (sender_id) REFERENCES Profiles(user_id)
 );
