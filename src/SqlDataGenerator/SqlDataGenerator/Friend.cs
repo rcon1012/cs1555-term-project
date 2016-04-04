@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace SqlDataGenerator {
     public enum FriendStatus {
@@ -8,6 +9,7 @@ namespace SqlDataGenerator {
         Count,
     }
 
+    [DebuggerDisplay("friend1_id={friend1_id}, friend2_id={friend2_id}, status={status}")]
     public class Friend {
         public Friend(Profile friend1, Profile friend2) {
             this.friend1_id = friend1.user_id;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace SqlDataGenerator {
     public enum MsgRecipType {
@@ -8,6 +9,7 @@ namespace SqlDataGenerator {
         Count
     }
 
+    [DebuggerDisplay("msg_id={msg_id}, subject={subject}, sender_id={sender_id}, time_sent={time_sent}, msg_text={msg_text}")]
     public class Message {
         public Message(int msg_id, Profile sender, Profile recip) {
             type = (int)MsgRecipType.SingleUser;
@@ -32,7 +34,7 @@ namespace SqlDataGenerator {
                 this.msg_text = "message " + this.msg_id;
             }
         }
-     
+
         public int msg_id { get; private set; }
 
         private string _subject;

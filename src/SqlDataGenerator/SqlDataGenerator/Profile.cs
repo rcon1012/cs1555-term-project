@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace SqlDataGenerator {
+    [DebuggerDisplay("user_id={user_id}, fname={fname}, email={email}, dob={dob}, last_on{last_on}")]
     public class Profile {
         public Profile(int id) {
             this.user_id = id;

@@ -42,10 +42,16 @@ namespace SqlDataGenerator {
             // 300 messages
             var messages = new List<Message>();
             for(int i = 1; i <= 300; i++) {
+                var sender = profiles[rand.Next(profiles.Count)];
                 if(rand.Next(4) == 0) { // 25% chance to generate group wide message
-                    messages.Add(new Message(i, profiles[rand.Next(profiles.Count)], groups[rand.Next(groups.Count)]));
+                    var member = members.ElementAt(rand.Next(members.Count));
+                    messages.Add(new Message(i, profiles[member.user_id - 1], groups[member.group_id - 1]));
                 } else {
-                    messages.Add(new Message(i, profiles[rand.Next(profiles.Count)], profiles[rand.Next(profiles.Count)]));
+                    Profile receiver = null;
+                    do {
+                        receiver = profiles[rand.Next(profiles.Count)];
+                    } while(sender == receiver);
+                    messages.Add(new Message(i, sender, receiver));
                 }
             }
 

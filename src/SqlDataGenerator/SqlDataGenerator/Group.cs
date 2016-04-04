@@ -1,4 +1,7 @@
-﻿namespace SqlDataGenerator {
+﻿using System.Diagnostics;
+
+namespace SqlDataGenerator {
+    [DebuggerDisplay("group_id={group_id}, name={name}, desc={description}, capacity={capacity}")]
     public class Group {
         public Group(int id, int capacity) {
             this.group_id = id;
