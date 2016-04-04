@@ -13,6 +13,7 @@ DROP TABLE Messages CASCADE CONSTRAINTS;
 
 -- Table manages user profiles and metadata.
 -- Assume user's first name, last name, and email are 100 characters or less and can be null.
+-- Assume user_id's will never change
 --  user_id     PK, user's assigned id
 --  fname       user's first name
 --  lname       user's last name
@@ -47,6 +48,7 @@ CREATE TABLE Friends (
 
 
 -- Table manages group existence and metadata.
+-- Assume group_id's will never change
 --  group_id    PK, Group's assigned id
 --  name        Group's name
 --  description Group's description
