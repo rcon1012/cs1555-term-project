@@ -10,7 +10,15 @@ DROP TABLE Groups CASCADE CONSTRAINTS;
 DROP TABLE Members CASCADE CONSTRAINTS;
 DROP TABLE Messages CASCADE CONSTRAINTS;
 
--- assume user's first name, last name, and email are 100 characters or less and can be null
+
+-- Table manages user profiles and metadata.
+-- Assume user's first name, last name, and email are 100 characters or less and can be null.
+--  user_id     PK, user's assigned id
+--  fname       user's first name
+--  lname       user's last name
+--  email       user's email address
+--  dob         user's date of birth
+--  last_on     user's last log-on timestamp
 CREATE TABLE Profiles (
     user_id     NUMBER(10) PRIMARY KEY,
     fname       VARCHAR2(100),
@@ -20,7 +28,12 @@ CREATE TABLE Profiles (
     last_on     TIMESTAMP
 );
 
--- assume users can befriend themselves
+-- Table manages friendship relationship between user profiles.
+-- We assume users can befriend themselves.
+--  friend1_id  PK(1, 0), Requester's assigned id
+--  friend2_id  PK(0, 1), Reciever's assigned id
+--  status      Flag denoting friendship pending (0) or established (1)
+--  established Timestamp denoting the time of establishement
 CREATE TABLE Friends (
     friend1_id  NUMBER(10) NOT NULL,
     friend2_id  NUMBER(10) NOT NULL,
@@ -32,6 +45,12 @@ CREATE TABLE Friends (
     CONSTRAINT Friends_Status_Check CHECK(status BETWEEN 0 AND 1)
 );
 
+
+-- Table manages group existence and metadata.
+--  group_id    PK, Group's assigned id
+--  name        Group's name
+--  description Group's description
+--  capacity    Group's maximum number of allowed members
 CREATE TABLE Groups (
     group_id    NUMBER(10) PRIMARY KEY,
     name        VARCHAR2(100) NOT NULL,
@@ -39,6 +58,9 @@ CREATE TABLE Groups (
     capacity    NUMBER(10) NOT NULL
 );
 
+-- Table manages group membership of user profiles.
+--  group_id    PK(1, 0), Group id to which the member belongs
+--  user_id     PK(0, 1), USer id of the member
 CREATE TABLE Members (
     group_id    NUMBER(10),
     user_id     NUMBER(10),
@@ -47,9 +69,17 @@ CREATE TABLE Members (
     CONSTRAINT Members_Profiles_FK FOREIGN KEY (user_id) REFERENCES Profiles(user_id) ON DELETE CASCADE
 );
 
--- type: flag to denote sent to single user(1), or the whole group(2)
--- recip: single user or group id, depending upon type
--- assume messages will be kept in the database after user or group deletion
+-- Table manages messages sent from users to other users or entire groups.
+-- Here we assume all messages will be 100 chars or less, as described by the 
+-- milestone description, therefore no trigger or check exists for such test.
+-- Also assume messages will be kept in the database after user or group deletion
+--  msg_id      Message's assigned id
+--  subject     Message's subject
+--  sender_id   Sending user's assigned id
+--  recip_id    Recieving user or group assinged id, depends on type
+--  time_sent   Message's timestamp of being sent
+--  msg_text    Message's body of text
+--  type        Flag to denote sent to single user(1), or the whole group(2)
 CREATE TABLE Messages (
     msg_id      NUMBER(10) PRIMARY KEY,
     subject     VARCHAR2(100),
@@ -63,7 +93,8 @@ CREATE TABLE Messages (
 );
 
 -- NOTE: the triggers below are subject to change come the next milestone for the project
--- users can only send messages to groups they belong to
+
+-- Trigger to ensure users can only send messages to groups they belong to
 CREATE OR REPLACE TRIGGER Membership_Trigger
 BEFORE INSERT OR UPDATE ON Messages
 FOR EACH ROW
@@ -82,7 +113,7 @@ BEGIN
 END;
 /
 
--- trigger to check that the recipient of a message when it is sent to a single user is a user that exists
+-- Trigger to ensure messages are sent to valid users
 CREATE OR REPLACE TRIGGER User_Message_Trigger
 BEFORE INSERT OR UPDATE ON Messages
 FOR EACH ROW
@@ -101,6 +132,7 @@ BEGIN
 END;
 /
 
+-- Trigger to ensure groups do not exceed their capacity with membership
 CREATE OR REPLACE TRIGGER Group_Capacity_Trigger
 BEFORE INSERT OR UPDATE ON Members
 FOR EACH ROW
@@ -124,39 +156,5 @@ BEGIN
 END;
 /
 
--- THE CHECKS BELOW THIS LINE ARE NOT NECESSARY DUE TO OUR FOREIGN KEY CONSTRAINTS
-CREATE OR REPLACE TRIGGER Existent_Friend_Trigger
-BEFORE INSERT OR UPDATE ON Friends
-FOR EACH ROW
-DECLARE
-    cnt NUMBER;
-BEGIN
-    SELECT COUNT(*)
-    INTO cnt
-    FROM Profiles
-    WHERE Profiles.user_id = :NEW.friend2_id;
-
-    IF (cnt < 1) THEN
-        RAISE_APPLICATION_ERROR( -20002, 'User does not exist' );
-    END IF;
-END;
-/
-
-CREATE OR REPLACE TRIGGER Existent_Group_Trigger
-BEFORE INSERT OR UPDATE ON Members
-FOR EACH ROW
-DECLARE
-    cnt NUMBER;
-BEGIN
-    SELECT COUNT(*)
-    INTO cnt
-    FROM Groups
-    WHERE Groups.group_id = :NEW.group_id;
-
-    IF (cnt < 1) THEN
-        RAISE_APPLICATION_ERROR( -20002, 'Group does not exist' );
-    END IF;
-END;
-/
 
 
