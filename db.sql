@@ -19,12 +19,6 @@ CREATE TABLE Profiles (
     last_on     TIMESTAMP
 );
 
--- user_id: id of the person in question
--- frined_id: id of friend of person in question
--- status: flag to denote pending(0) or established(1)
--- TODO: Add check for existing F(A, B) before adding F(B, A),
--- where F(uid, fid) = establish friendship of uid and fid. We want F to
--- be bilateral, which is accomplished by this check.
 -- assumes users can befriend themselves
 CREATE TABLE Friends (
     friend1_id  NUMBER(10) NOT NULL,
@@ -99,6 +93,29 @@ BEGIN
 
     IF (cnt < 1) THEN
         RAISE_APPLICATION_ERROR( -20002, 'User does not exist' );
+    END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER Group_Capacity_Trigger
+BEFORE INSERT OR UPDATE ON Members
+FOR EACH ROW
+DECLARE
+    cnt NUMBER;
+    cap NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO cnt
+    FROM Members
+    WHERE Members.user_id = :NEW.user_id;
+
+    SELECT capacity
+    INTO cap
+    FROM Groups
+    WHERE Groups.group_id = :NEW.group_id;
+
+    IF (cnt > cap - 1) THEN
+        RAISE_APPLICATION_ERROR( -20002, 'Group capacity met.' );
     END IF;
 END;
 /
