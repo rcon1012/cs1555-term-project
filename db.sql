@@ -26,8 +26,8 @@ CREATE TABLE Friends (
     friend2_id  NUMBER(10) NOT NULL,
     status      NUMBER(1) NOT NULL,
     established TIMESTAMP,
-    CONSTRAINT Profile_UID_FK FOREIGN KEY (friend1_id) REFERENCES Profiles(user_id),
-    CONSTRAINT Profile_FID_FK FOREIGN KEY (friend2_id) REFERENCES Profiles(user_id),
+    CONSTRAINT Profile_UID_FK FOREIGN KEY (friend1_id) REFERENCES Profiles(user_id) ON DELETE CASCADE,
+    CONSTRAINT Profile_FID_FK FOREIGN KEY (friend2_id) REFERENCES Profiles(user_id) ON DELETE CASCADE,
     CONSTRAINT Friends_PK PRIMARY KEY (friend1_id, friend2_id),
     CONSTRAINT Friends_Status_Check CHECK(status BETWEEN 0 AND 1)
 );
@@ -43,12 +43,13 @@ CREATE TABLE Members (
     group_id    NUMBER(10),
     user_id     NUMBER(10),
     CONSTRAINT Members_PK PRIMARY KEY (group_id, user_id),
-    CONSTRAINT Members_Groups_FK FOREIGN KEY (group_id) REFERENCES Groups(group_id),
-    CONSTRAINT Members_Profiles_FK FOREIGN KEY (user_id) REFERENCES Profiles(user_id)
+    CONSTRAINT Members_Groups_FK FOREIGN KEY (group_id) REFERENCES Groups(group_id) ON DELETE CASCADE,
+    CONSTRAINT Members_Profiles_FK FOREIGN KEY (user_id) REFERENCES Profiles(user_id) ON DELETE CASCADE
 );
 
 -- type: flag to denote sent to single user(1), or the whole group(2)
 -- recip: single user or group id, depending upon type
+-- assume messages will be kept in the database after user or group deletion
 CREATE TABLE Messages (
     msg_id      NUMBER(10) PRIMARY KEY,
     subject     VARCHAR2(100),
