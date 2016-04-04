@@ -66,6 +66,7 @@ CREATE TABLE Messages (
     CONSTRAINT Messages_Type_Check CHECK (type BETWEEN 1 AND 2)
 );
 
+-- users can only send messages to groups they belong to
 CREATE OR REPLACE TRIGGER Membership_Trigger
 BEFORE INSERT OR UPDATE ON Messages
 FOR EACH ROW
@@ -80,6 +81,24 @@ BEGIN
 
     IF (cnt < 1) THEN
         RAISE_APPLICATION_ERROR( -20001, 'Not a member of the group!' );
+    END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER User_Message_Trigger
+BEFORE INSERT OR UPDATE ON Messages
+FOR EACH ROW
+WHEN (NEW.type = 1)
+DECLARE
+    cnt NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO cnt
+    FROM Profiles
+    WHERE Profiles.user_id = :NEW.recip_id;
+
+    IF (cnt < 1) THEN
+        RAISE_APPLICATION_ERROR( -20002, 'User does not exists' );
     END IF;
 END;
 /
