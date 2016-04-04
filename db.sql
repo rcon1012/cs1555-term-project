@@ -98,7 +98,7 @@ BEGIN
     WHERE Profiles.user_id = :NEW.recip_id;
 
     IF (cnt < 1) THEN
-        RAISE_APPLICATION_ERROR( -20002, 'User does not exists' );
+        RAISE_APPLICATION_ERROR( -20002, 'User does not exist' );
     END IF;
 END;
 /
