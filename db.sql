@@ -21,10 +21,11 @@ CREATE TABLE Profiles (
 
 -- user_id: id of the person in question
 -- frined_id: id of friend of person in question
--- status: flag to denote no relationship(0), pending(1) or established(2)
+-- status: flag to denote pending(0) or established(1)
 -- TODO: Add check for existing F(A, B) before adding F(B, A),
 -- where F(uid, fid) = establish friendship of uid and fid. We want F to
 -- be bilateral, which is accomplished by this check.
+-- assumes users can befriend themselves
 CREATE TABLE Friends (
     friend1_id  NUMBER(10) NOT NULL,
     friend2_id  NUMBER(10) NOT NULL,
@@ -33,7 +34,7 @@ CREATE TABLE Friends (
     CONSTRAINT Profile_UID_FK FOREIGN KEY (friend1_id) REFERENCES Profiles(user_id),
     CONSTRAINT Profile_FID_FK FOREIGN KEY (friend2_id) REFERENCES Profiles(user_id),
     CONSTRAINT Friends_PK PRIMARY KEY (friend1_id, friend2_id),
-    CONSTRAINT Friends_Status_Check CHECK(status BETWEEN 0 AND 2)
+    CONSTRAINT Friends_Status_Check CHECK(status BETWEEN 0 AND 1)
 );
 
 CREATE TABLE Groups (
