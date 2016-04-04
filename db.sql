@@ -110,7 +110,7 @@ BEGIN
     SELECT COUNT(*)
     INTO cnt
     FROM Members
-    WHERE Members.user_id = :NEW.user_id;
+    WHERE Members.group_id = :NEW.group_id;
 
     SELECT capacity
     INTO cap
@@ -118,7 +118,7 @@ BEGIN
     WHERE Groups.group_id = :NEW.group_id;
 
     IF (cnt > cap - 1) THEN
-        RAISE_APPLICATION_ERROR( -20002, 'Group capacity met.' );
+        RAISE_APPLICATION_ERROR( -20003, 'Group capacity met.' );
     END IF;
 END;
 /
