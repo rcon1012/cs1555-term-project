@@ -58,10 +58,10 @@ CREATE TABLE Messages (
     subject     VARCHAR2(100),
     sender_id   NUMBER(10) NOT NULL,
     recip_id    NUMBER(10) NOT NULL,
-    time_sent   TIMESTAMP,
+    time_sent   TIMESTAMP NOT NULL,
     conv_id     NUMBER(10) NOT NULL,
     msg_text    VARCHAR2(100),
-    type        NUMBER(1),
+    type        NUMBER(1) NOT NULL,
     CONSTRAINT Messages_FK_Profiles FOREIGN KEY (sender_id) REFERENCES Profiles(user_id),
     CONSTRAINT Messages_Type_Check CHECK (type BETWEEN 1 AND 2)
 );
