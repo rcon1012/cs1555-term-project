@@ -97,6 +97,23 @@ BEGIN
 END;
 /
 
+CREATE OR REPLACE TRIGGER Existent_Friend_Trigger
+BEFORE INSERT OR UPDATE ON Friends
+FOR EACH ROW
+DECLARE
+    cnt NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO cnt
+    FROM Profiles
+    WHERE Profiles.user_id = :NEW.friend2_id;
+
+    IF (cnt < 1) THEN
+        RAISE_APPLICATION_ERROR( -20002, 'User does not exist' );
+    END IF;
+END;
+/
+
 CREATE OR REPLACE TRIGGER Group_Capacity_Trigger
 BEFORE INSERT OR UPDATE ON Members
 FOR EACH ROW

@@ -1,0 +1,82 @@
+INSERT INTO Profiles VALUES(1, 'Mallory', 'Williams', 'MalloryWilliams@outlook.com', TIMESTAMP '2010-04-04 15:25:21', TIMESTAMP '2014-10-12 02:38:01');
+INSERT INTO Profiles VALUES(2, 'Mallory', 'Moore', 'MalloryMoore@mail.com', TIMESTAMP '2007-11-28 15:16:36', TIMESTAMP '2008-06-28 16:56:05');
+INSERT INTO Profiles VALUES(3, 'Eve', 'Taylor', 'EveTaylor@aol.com', TIMESTAMP '1994-06-14 19:18:49', TIMESTAMP '2013-04-10 13:43:41');
+INSERT INTO Profiles VALUES(4, 'Alice', 'Young', 'AliceYoung@mail.com', TIMESTAMP '1997-03-01 23:41:23', TIMESTAMP '2012-07-18 01:30:31');
+INSERT INTO Profiles VALUES(5, 'Ryan', 'Garcia', 'RyanGarcia@aol.com', TIMESTAMP '1994-06-13 08:41:23', TIMESTAMP '2002-06-01 05:21:31');
+INSERT INTO Profiles VALUES(6, 'Eve', 'Allen', 'EveAllen@gmail.com', TIMESTAMP '1993-03-04 05:05:18', TIMESTAMP '2015-07-25 11:38:02');
+INSERT INTO Profiles VALUES(7, 'Trevor', 'Wilson', 'TrevorWilson@mail.com', TIMESTAMP '1994-09-13 10:57:24', TIMESTAMP '2012-12-29 19:13:06');
+INSERT INTO Profiles VALUES(8, 'Alex', 'Allen', 'AlexAllen@gmail.com', TIMESTAMP '1999-06-17 09:22:00', TIMESTAMP '2002-12-02 07:03:28');
+INSERT INTO Profiles VALUES(9, 'Steve', 'Lee', 'SteveLee@mail.com', TIMESTAMP '1995-12-07 20:28:18', TIMESTAMP '2010-04-25 02:01:53');
+INSERT INTO Profiles VALUES(10, 'Dan', 'Jones', 'DanJones@yahoo.com', TIMESTAMP '1991-10-19 04:15:26', TIMESTAMP '2002-06-21 08:33:18');
+
+INSERT INTO Friends VALUES(1, 7, 1, TIMESTAMP '2013-02-17 17:27:01');
+INSERT INTO Friends VALUES(1, 4, 1, TIMESTAMP '2013-10-05 14:37:05');
+INSERT INTO Friends VALUES(2, 1, 1, TIMESTAMP '2008-03-16 17:46:50');
+INSERT INTO Friends VALUES(2, 5, 0, NULL);
+INSERT INTO Friends VALUES(3, 4, 0, NULL);
+INSERT INTO Friends VALUES(3, 8, 0, NULL);
+/* Existent Friend trigger fire */
+INSERT INTO Friends VALUES(3, 0, 0, NULL);
+INSERT INTO Friends VALUES(4, 9, 0, NULL);
+INSERT INTO Friends VALUES(4, 5, 0, NULL);
+INSERT INTO Friends VALUES(6, 4, 1, TIMESTAMP '2013-07-27 23:15:25');
+INSERT INTO Friends VALUES(6, 8, 0, NULL);
+INSERT INTO Friends VALUES(6, 1, 1, TIMESTAMP '2006-05-14 22:16:32');
+INSERT INTO Friends VALUES(7, 8, 1, TIMESTAMP '2012-03-18 03:43:32');
+INSERT INTO Friends VALUES(9, 1, 1, TIMESTAMP '2013-05-23 04:27:55');
+INSERT INTO Friends VALUES(9, 2, 1, TIMESTAMP '2002-05-26 12:15:52');
+
+INSERT INTO Groups VALUES(1, 'Group804939', NULL, 10);
+INSERT INTO Groups VALUES(2, 'Group735124', NULL, 10);
+INSERT INTO Groups VALUES(3, 'Group321670', 'A group for Group321670', 0);
+INSERT INTO Groups VALUES(4, 'Group686177', 'A group for Group686177', 2);
+INSERT INTO Groups VALUES(5, 'Group598637', NULL, 5);
+INSERT INTO Groups VALUES(6, 'Group487932', 'A group for Group487932', 100);
+INSERT INTO Groups VALUES(7, 'Group334600', 'A group for Group334600', 20);
+INSERT INTO Groups VALUES(8, 'Group8988', 'A group for Group8988', 30);
+INSERT INTO Groups VALUES(9, 'Group391574', 'A group for Group391574', 1000);
+INSERT INTO Groups VALUES(10, 'Group872009', 'A group for Group872009', 40);
+
+INSERT INTO Members VALUES(1, 5);
+INSERT INTO Members VALUES(1, 4);
+INSERT INTO Members VALUES(1, 7);
+
+INSERT INTO Members VALUES(2, 2);
+INSERT INTO Members VALUES(2, 3);
+INSERT INTO Members VALUES(2, 9);
+
+INSERT INTO Members VALUES(3, 3);
+
+INSERT INTO Members VALUES(5, 6);
+INSERT INTO Members VALUES(5, 8);
+INSERT INTO Members VALUES(5, 9);
+INSERT INTO Members VALUES(5, 4);
+INSERT INTO Members VALUES(5, 2);
+/* Capacity trigger fire */
+INSERT INTO Members VALUES(5, 3);
+
+INSERT INTO Members VALUES(6, 8);
+INSERT INTO Members VALUES(6, 5);
+INSERT INTO Members VALUES(6, 4);
+
+INSERT INTO Members VALUES(8, 9);
+INSERT INTO Members VALUES(8, 1);
+INSERT INTO Members VALUES(8, 2);
+INSERT INTO Members VALUES(8, 7);
+INSERT INTO Members VALUES(8, 8);
+
+INSERT INTO Members VALUES(9, 3);
+INSERT INTO Members VALUES(9, 8);
+INSERT INTO Members VALUES(9, 4);
+INSERT INTO Members VALUES(9, 5);
+INSERT INTO Members VALUES(9, 2);
+INSERT INTO Members VALUES(9, 1);
+
+INSERT INTO Messages VALUES(1, 'subject 1', 2, 4, TIMESTAMP '2013-02-17 17:27:01', NULL, 1);
+/* Group membership trigger fire */
+INSERT INTO Messages VALUES(2, 'subject 2', 7, 9, TIMESTAMP '2013-02-17 17:27:01', 'message 2', 2);
+INSERT INTO Messages VALUES(3, 'subject 3', 1, 9, TIMESTAMP '2013-02-17 17:27:01', 'message 3', 1);
+INSERT INTO Messages VALUES(4, 'subject 4', 4, 5, TIMESTAMP '2013-02-17 17:27:01', 'message 4', 2);
+/* Existent user message trigger fire */
+INSERT INTO Messages VALUES(5, 'subject 5', 7, 11, TIMESTAMP '2013-02-17 17:27:01', 'message 5', 1);
+
