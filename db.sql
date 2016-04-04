@@ -10,6 +10,7 @@ DROP TABLE Groups CASCADE CONSTRAINTS;
 DROP TABLE Members CASCADE CONSTRAINTS;
 DROP TABLE Messages CASCADE CONSTRAINTS;
 
+-- assume user's first name, last name, and email are 100 characters or less and can be null
 CREATE TABLE Profiles (
     user_id     NUMBER(10) PRIMARY KEY,
     fname       VARCHAR2(100),
@@ -19,7 +20,7 @@ CREATE TABLE Profiles (
     last_on     TIMESTAMP
 );
 
--- assumes users can befriend themselves
+-- assume users can befriend themselves
 CREATE TABLE Friends (
     friend1_id  NUMBER(10) NOT NULL,
     friend2_id  NUMBER(10) NOT NULL,
@@ -60,6 +61,7 @@ CREATE TABLE Messages (
     CONSTRAINT Messages_Type_Check CHECK (type BETWEEN 1 AND 2)
 );
 
+-- NOTE: the triggers below are subject to change come the next milestone for the project
 -- users can only send messages to groups they belong to
 CREATE OR REPLACE TRIGGER Membership_Trigger
 BEFORE INSERT OR UPDATE ON Messages
@@ -79,6 +81,7 @@ BEGIN
 END;
 /
 
+-- trigger to check that the recipient of a message when it is sent to a single user is a user that exists
 CREATE OR REPLACE TRIGGER User_Message_Trigger
 BEFORE INSERT OR UPDATE ON Messages
 FOR EACH ROW
@@ -97,6 +100,30 @@ BEGIN
 END;
 /
 
+CREATE OR REPLACE TRIGGER Group_Capacity_Trigger
+BEFORE INSERT OR UPDATE ON Members
+FOR EACH ROW
+DECLARE
+    cnt NUMBER;
+    cap NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO cnt
+    FROM Members
+    WHERE Members.user_id = :NEW.user_id;
+
+    SELECT capacity
+    INTO cap
+    FROM Groups
+    WHERE Groups.group_id = :NEW.group_id;
+
+    IF (cnt > cap - 1) THEN
+        RAISE_APPLICATION_ERROR( -20002, 'Group capacity met.' );
+    END IF;
+END;
+/
+
+-- THE CHECKS BELOW THIS LINE ARE NOT NECESSARY DUE TO OUR FOREIGN KEY CONSTRAINTS
 CREATE OR REPLACE TRIGGER Existent_Friend_Trigger
 BEFORE INSERT OR UPDATE ON Friends
 FOR EACH ROW
@@ -131,25 +158,4 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER Group_Capacity_Trigger
-BEFORE INSERT OR UPDATE ON Members
-FOR EACH ROW
-DECLARE
-    cnt NUMBER;
-    cap NUMBER;
-BEGIN
-    SELECT COUNT(*)
-    INTO cnt
-    FROM Members
-    WHERE Members.user_id = :NEW.user_id;
 
-    SELECT capacity
-    INTO cap
-    FROM Groups
-    WHERE Groups.group_id = :NEW.group_id;
-
-    IF (cnt > cap - 1) THEN
-        RAISE_APPLICATION_ERROR( -20002, 'Group capacity met.' );
-    END IF;
-END;
-/
