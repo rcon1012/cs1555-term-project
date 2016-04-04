@@ -25,6 +25,7 @@ CREATE TABLE Profiles (
 -- TODO: Add check for existing F(A, B) before adding F(B, A),
 -- where F(uid, fid) = establish friendship of uid and fid. We want F to
 -- be bilateral, which is accomplished by this check.
+-- assumes users can befriend themselves
 CREATE TABLE Friends (
     friend1_id  NUMBER(10) NOT NULL,
     friend2_id  NUMBER(10) NOT NULL,
