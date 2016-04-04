@@ -32,7 +32,8 @@ CREATE TABLE Friends (
     established TIMESTAMP,
     CONSTRAINT Profile_UID_FK FOREIGN KEY (friend1_id) REFERENCES Profiles(user_id),
     CONSTRAINT Profile_FID_FK FOREIGN KEY (friend2_id) REFERENCES Profiles(user_id),
-    CONSTRAINT Friends_PK PRIMARY KEY (friend1_id, friend2_id)
+    CONSTRAINT Friends_PK PRIMARY KEY (friend1_id, friend2_id),
+    CONSTRAINT Friends_Status_Check CHECK(status BETWEEN 0 AND 2)
 );
 
 CREATE TABLE Groups (
