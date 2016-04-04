@@ -37,6 +37,9 @@ INSERT INTO Groups VALUES(8, 'Group8988', 'A group for Group8988', 30);
 INSERT INTO Groups VALUES(9, 'Group391574', 'A group for Group391574', 1000);
 INSERT INTO Groups VALUES(10, 'Group872009', 'A group for Group872009', 40);
 
+/* Existent group trigger fire */
+INSERT INTO Members VALUES(0, 5);
+
 INSERT INTO Members VALUES(1, 5);
 INSERT INTO Members VALUES(1, 4);
 INSERT INTO Members VALUES(1, 7);

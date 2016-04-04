@@ -114,6 +114,23 @@ BEGIN
 END;
 /
 
+CREATE OR REPLACE TRIGGER Existent_Group_Trigger
+BEFORE INSERT OR UPDATE ON Members
+FOR EACH ROW
+DECLARE
+    cnt NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO cnt
+    FROM Groups
+    WHERE Groups.group_id = :NEW.group_id;
+
+    IF (cnt < 1) THEN
+        RAISE_APPLICATION_ERROR( -20002, 'Group does not exist' );
+    END IF;
+END;
+/
+
 CREATE OR REPLACE TRIGGER Group_Capacity_Trigger
 BEFORE INSERT OR UPDATE ON Members
 FOR EACH ROW
