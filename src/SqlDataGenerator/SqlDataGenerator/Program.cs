@@ -65,7 +65,7 @@ namespace SqlDataGenerator {
                 file.WriteLine();
 
                 foreach(var f in friendships.OrderBy(f => f.friend1_id).ThenBy(f => f.friend2_id)) {
-                    var query = $"INSERT INTO Friends VALUES({f.friend1_id}, {f.friend2_id}, {f.status}, TIMESTAMP '{f.established.ToString(DateFormat)}');";
+                    var query = $"INSERT INTO Friends VALUES({f.friend1_id}, {f.friend2_id}, {DateAsTimeStamp(f.established)});";
                     Console.WriteLine(query);
                     file.WriteLine(query);
                 }

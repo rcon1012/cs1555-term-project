@@ -23,6 +23,18 @@ namespace SqlDataGenerator {
             return (lhs > rhs ? lhs : rhs);
         }
 
+        public static string DateAsTimeStamp(DateTime date) {
+            return DateAsTimeStamp((DateTime?)date);
+        }
+
+        public static string DateAsTimeStamp(DateTime? date) {
+            if(date == null) {
+                return "NULL";
+            } else {
+                return "TIMESTAMP '" + date.Value.ToString(DateFormat) + "'";
+            }
+        }
+
         public static Random rand = new Random(1);
         public const string DateFormat = "yyyy-MM-dd HH:mm:ss";
     }

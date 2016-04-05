@@ -33,17 +33,14 @@ CREATE TABLE Profiles (
 -- We assume users can befriend themselves.
 --  friend1_id  PK(1, 0), Requester's assigned id
 --  friend2_id  PK(0, 1), Reciever's assigned id
---  status      Flag denoting friendship pending (0) or established (1)
 --  established Timestamp denoting the time of establishement
 CREATE TABLE Friends (
     friend1_id  NUMBER(10) NOT NULL,
     friend2_id  NUMBER(10) NOT NULL,
-    status      NUMBER(1) NOT NULL,
     established TIMESTAMP,
     CONSTRAINT Profile_UID_FK FOREIGN KEY (friend1_id) REFERENCES Profiles(user_id) ON DELETE CASCADE,
     CONSTRAINT Profile_FID_FK FOREIGN KEY (friend2_id) REFERENCES Profiles(user_id) ON DELETE CASCADE,
-    CONSTRAINT Friends_PK PRIMARY KEY (friend1_id, friend2_id),
-    CONSTRAINT Friends_Status_Check CHECK(status BETWEEN 0 AND 1)
+    CONSTRAINT Friends_PK PRIMARY KEY (friend1_id, friend2_id)
 );
 
 
@@ -90,7 +87,7 @@ CREATE TABLE Messages (
     time_sent   TIMESTAMP NOT NULL,
     msg_text    VARCHAR2(100),
     type        NUMBER(1) NOT NULL,
-    CONSTRAINT Messages_FK_Profiles FOREIGN KEY (sender_id) REFERENCES Profiles(user_id),
+    CONSTRAINT Messages_FK_Profiles FOREIGN KEY (sender_id) REFERENCES Profiles(user_id) ON DELETE CASCADE,
     CONSTRAINT Messages_Type_Check CHECK (type BETWEEN 1 AND 2)
 );
 
