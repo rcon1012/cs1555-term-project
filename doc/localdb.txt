@@ -1,0 +1,23 @@
+If you want to use sqlplus and java jdbc locally, you can by downloading:
+
+Oracle Database Express Edition 11g Release 2 for Windows x64
+from
+http://www.oracle.com/technetwork/database/database-technologies/express-edition/downloads/index.html
+
+and
+
+ojdbc7.jar
+from
+http://www.oracle.com/technetwork/database/features/jdbc/jdbc-drivers-12c-download-1958347.html
+
+For your connection url, use:
+"jdbc:oracle:thin:@localhost:1521:xe"
+
+and for your username, use:
+"SYSTEM"
+
+the password is set during installation. I used "password".
+If xe doesn't work for you, use the command:
+
+"select instance_name from v$instance;"
+If SYSTEM doesn't work for you, try "sys" or "SYSADMIN"
