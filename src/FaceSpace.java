@@ -92,59 +92,59 @@ public class FaceSpace {
         }
     }
 
-    private void createUser() {
+    private void createUser(Profile profile) {
 
     }
 
-    private void initiateFriendship() {
+    private void initiateFriendship(long friend_id1, long friend_id2) {
 
     }
 
-    private void establishFriendship() {
+    private void establishFriendship(long friend_id1, long friend_id2) {
 
     }
 
-    private void displayFriends() {
+    private void displayFriends(long user_id) {
 
     }
 
-    private void createGroup() {
+    private void createGroup(Group group) {
 
     }
 
-    private void addToGroup() {
+    private void addToGroup(long group_id, long user_id) {
 
     }
 
-    private void sendMessageToUser() {
+    private void sendMessageToUser(Message message) {
+		
+    }
+
+    private void sendMessageToGroup(Message message) {
 
     }
 
-    private void sendMessageToGroup() {
+    private void displayMessages(long user_id) {
 
     }
 
-    private void displayMessages() {
+    private void displayNewMessages(long user_id) {
 
     }
 
-    private void displayNewMessages() {
+    private void searchForUser(String searchTerm) {
 
     }
 
-    private void searchForUser() {
+    private void threeDegrees(long user_id1, long user_id2) {
 
     }
 
-    private void threeDegrees() {
+    private void topMessagers(int numUsers, int numMonths) {
 
     }
 
-    private void topMessagers() {
-
-    }
-
-    private void dropUser() {
+    private void dropUser(long user_id) {
 
     }
 }
