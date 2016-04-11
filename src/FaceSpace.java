@@ -8,6 +8,7 @@ public class FaceSpace {
     private PreparedStatement prepStatement;
     private ResultSet resultSet;
     private String query;
+	private java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd");
 
     public static void main(String args[]) throws SQLException {
         String username, password;
@@ -93,7 +94,37 @@ public class FaceSpace {
     }
 
     private void createUser(Profile profile) {
-
+		try {
+			// prepare the statement
+			query = "INSERT INTO Profiles(fname, lname, email, dob, last_on) Values(?, ?, ?, ?, ?);"
+			prepStatement = connection.prepareStatement(query);
+		
+			// insert the profile values
+			prepStatement.setString(1, profile.getFName());
+			prepStatement.setString(2, profile.getLName());
+			prepStatement.setString(3, profile.getEmail());
+			prepStatement.setTimestamp(4, new java.sql.Timestamp(profile.getDob().getTime()));
+			// last_on set to profile creation
+			prepStatement.setTimestamp(5, new java.sql.Timestamp((new java.util.Date()).getTime());
+			
+			// execute query
+			prepStatement.executeUpdate();
+		}
+        catch(SQLException Ex) {
+            System.out.println("Error running the sample queries.  Machine Error: " +
+                    Ex.toString());
+        } catch (ParseException e) {
+            System.out.println("Error parsing the date. Machine Error: " +
+                    e.toString());
+        }
+        finally{
+            try {
+                if (statement != null) statement.close();
+                if (prepStatement != null) prepStatement.close();
+            } catch (SQLException e) {
+                System.out.println("Cannot close Statement. Machine error: "+e.toString());
+            }
+        }
     }
 
     private void initiateFriendship(long friend_id1, long friend_id2) {
@@ -125,7 +156,7 @@ public class FaceSpace {
     }
 
     private void displayMessages(long user_id) {
-
+		
     }
 
     private void displayNewMessages(long user_id) {
