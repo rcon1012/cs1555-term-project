@@ -155,5 +155,40 @@ BEGIN
 END;
 /
 
+-- auto-increment triggers for id's
+CREATE SEQUENCE profiles_seq NOCYCLE MAXVALUE 9999999 START WITH 1;
+CREATE SEQUENCE groups_seq NOCYCLE MAXVALUE 9999999 START WITH 1;
+CREATE SEQUENCE messages_seq NOCYCLE MAXVALUE 9999999 START WITH 1;
 
+CREATE OR REPLACE TRIGGER Profiles_ID_Inc
+BEFORE INSERT ON Profiles
+FOR EACH ROW
+DECLARE
+	next_id INTEGER;
+BEGIN
+	SELECT profiles_seq.NEXTVAL INTO next_id FROM DUAL;
+	:new.user_id := next_id;
+END;
+/
 
+CREATE OR REPLACE TRIGGER Groups_ID_Inc
+BEFORE INSERT ON Profiles
+FOR EACH ROW
+DECLARE
+	next_id INTEGER;
+BEGIN
+	SELECT groups_seq.NEXTVAL INTO next_id FROM DUAL;
+	:new.group_id := next_id;
+END;
+/
+
+CREATE OR REPLACE TRIGGER Messages_ID_Inc
+BEFORE INSERT ON Profiles
+FOR EACH ROW
+DECLARE
+	next_id INTEGER;
+BEGIN
+	SELECT messages_seq.NEXTVAL INTO next_id FROM DUAL;
+	:new.msg_id := next_id;
+END;
+/
