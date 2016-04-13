@@ -1,39 +1,45 @@
+import com.sun.javaws.exceptions.InvalidArgumentException;
+
 import java.sql.*;
+import java.text.ParseException;
 import java.util.Scanner;
 
 public class FaceSpace {
     private static final Scanner consoleScanner = new Scanner(System.in);
+    private static final String dfString = "yyyy-MM-dd";
+    private static final java.text.SimpleDateFormat df = new java.text.SimpleDateFormat(dfString);
     private static Connection connection;
     private Statement statement;
     private PreparedStatement prepStatement;
     private ResultSet resultSet;
     private String query;
-	private java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd");
 
-    public static void main(String args[]) throws SQLException {
-        String username, password;
+    public static void main(String args[]) {
+        String url, username, password;
+        url = "jdbc:oracle:thin:@localhost:1521:xe";
         username = "SYSTEM";
         password = "password";
+        if(args.length >= 1) { url = args[0]; }
+        if(args.length >= 2) { username = args[1]; }
+        if(args.length >= 3) { password = args[2]; }
 
         try {
             System.out.println("Registering DB..");
             DriverManager.registerDriver (new oracle.jdbc.driver.OracleDriver());
-
-            System.out.println("Set url..");
-            String url = "jdbc:oracle:thin:@localhost:1521:xe";
 
             System.out.println("Connect to DB..");
             connection = DriverManager.getConnection(url, username, password);
 
             FaceSpace demo = new FaceSpace();
             demo.runExample();
-        }
-        catch(Exception Ex)  {
-            System.out.println("Error connecting to database.  Machine Error: " +
-                    Ex.toString());
-        }
-        finally {
-            connection.close();
+        } catch(Exception e)  {
+            System.out.println("Error connecting to database.  Machine Error: " + e.toString());
+        } finally {
+            try {
+                connection.close();
+            } catch(Exception e)  {
+                System.out.println("Error closing database connection.  Machine Error: " + e.toString());
+            }
         }
     }
 
@@ -42,68 +48,72 @@ public class FaceSpace {
         do {
             try {
                 runChoice(choice);
+            } catch (SQLException e) {
+                System.out.println("Error running the sample queries. Machine Error: " + e.toString());
+            } catch (InvalidArgumentException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if(statement != null) { statement.close(); }
+                    if(prepStatement != null) { prepStatement.close(); }
+                } catch (SQLException e) {
+                    System.out.println("Cannot close statement. Machine error: " + e.toString());
+                }
+
                 choice = readInt("Choice: ");
             }
-            catch (SQLException e) {
-                System.out.println("Error running the sample queries. Machine Error: " + e.toString());
-            }
-            finally {
-                closeStatements();
-            }
         } while(choice != 0);
+
+        try {
+            connection.close();
+        } catch(Exception e)  {
+            System.out.println("Error closing database connection.  Machine Error: " + e.toString());
+        }
     }
 
-    private void runChoice(int choice) throws SQLException {
+    private void runChoice(int choice) throws SQLException, InvalidArgumentException {
         switch (choice) {
-            case 0:
-                try {
-                    connection.close();
-                }
-                catch(Exception e)  {
-                    System.out.println("Error closing database connection.  Machine Error: " + e.toString());
-                }
-                break;
             case 1:
-                createUser(new Profile());
+                createUser(readProfile());
                 break;
             case 2:
-                initiateFriendship(9, 5);
+                initiateFriendship(readLong("Friend 1 ID: "), readLong("Friend 2 ID: "));
                 break;
             case 3:
-                establishFriendship(0, 0);
+                establishFriendship(readLong("Friend 1 ID: "), readLong("Friend 2 ID: "));
                 break;
             case 4:
-                displayFriends(0);
+                displayFriends(readLong("User ID: "));
                 break;
             case 5:
-                createGroup(new Group());
+                createGroup(readGroup());
                 break;
             case 6:
-                addToGroup(0, 0);
+                addToGroup(readLong("Group ID: "), readLong("User ID: "));
                 break;
             case 7:
-                sendMessageToUser(new Message());
+                sendMessageToUser(readMessage());
                 break;
             case 8:
-                sendMessageToGroup(new Message());
+                sendMessageToGroup(readMessage());
                 break;
             case 9:
-                displayMessages(0);
+                displayMessages(readLong("User ID: "));
                 break;
             case 10:
-                displayNewMessages(0);
+                displayNewMessages(readLong("User ID: "));
                 break;
             case 11:
-                searchForUser(new String());
+                searchForUser(readString("Search Term: "));
                 break;
             case 12:
-                threeDegrees(0, 0);
+                threeDegrees(readLong("User 1 ID: "), readLong("User ID: "));
                 break;
             case 13:
-                topMessagers(0, 0);
+                topMessagers(readInt("Num Users: "), readInt("Num Months: "));
                 break;
             case 14:
-                dropUser(0);
+                dropUser(readLong("User ID: "));
                 break;
             default:
                 System.out.println("No choice selected. Choices:");
@@ -128,19 +138,51 @@ public class FaceSpace {
         }
     }
 
-    public static int readInt(String prompt) {
-        String consoleInput = readString(prompt);
-        return forceParseInt(consoleInput, "Input", prompt);
+    private Profile readProfile() {
+        return new Profile(readLong("User ID: "), readString("First Name: "), readString("Last Name: "), readString("Email: "), readTimestamp("Date of Birth: "), readTimestamp("Last On: "));
     }
 
-    public static int forceParseInt(String input, String propertyName, String prompt) {
+    private Group readGroup() throws InvalidArgumentException {
+        return new Group(readLong("Group ID: "), readString("Name: "), readString("Description: "), readInt("Capacity: "));
+    }
+
+    private Message readMessage() throws InvalidArgumentException {
+        return new Message(readLong("Message ID: "), readString("Subject: "), readLong("Sender ID: "), readLong("Recipient ID: "), readTimestamp("Time Sent: "), readString("Text: "), MessageType.fromInt(readInt("Message Type: ")));
+    }
+
+    public static int readInt(String prompt) {
+        String consoleInput = readString(prompt);
         while(true) {
             try {
-                return Integer.parseInt(input);
+                return Integer.parseInt(consoleInput);
+            } catch(NumberFormatException e) {
+                System.out.println("ERROR: Input must be a base 10 integer. Please try again.\n");
+                consoleInput = readString(prompt);
             }
-            catch(NumberFormatException e) {
-                System.out.println("ERROR: " + propertyName + " must be a base 10 integer. Please try again.\n");
-                input = readString(prompt);
+        }
+    }
+
+    public static long readLong(String prompt) {
+        String consoleInput = readString(prompt);
+        while(true) {
+            try {
+                return Long.parseLong(consoleInput);
+            } catch(NumberFormatException e) {
+                System.out.println("ERROR: Input must be a base 10 integer. Please try again.\n");
+                consoleInput = readString(prompt);
+            }
+        }
+    }
+
+    public static Timestamp readTimestamp(String prompt) {
+        String consoleInput = readString(prompt);
+        while(true) {
+            try {
+                return new Timestamp(df.parse(consoleInput).getTime());
+            }
+            catch(ParseException e) {
+                System.out.println("ERROR: Input must be of format \"" + dfString + "\". Please try again.\n");
+                consoleInput = readString(prompt);
             }
         }
     }
@@ -151,20 +193,9 @@ public class FaceSpace {
         return consoleInput;
     }
 
-    private void closeStatements() {
-        try {
-            if(statement != null) { statement.close(); }
-            if(prepStatement != null) { prepStatement.close(); }
-        }
-        catch (SQLException e) {
-            System.out.println("Cannot close statement. Machine error: " + e.toString());
-        }
-        System.out.println();
-    }
-
     private void createUser(Profile profile) throws SQLException {
         // prepare the statement
-        query = "INSERT INTO Profiles(fname, lname, email, dob, last_on) Values(?, ?, ?, ?, ?);";
+        query = "INSERT INTO Profiles(fname, lname, email, dob, last_on) Values(?, ?, ?, ?, ?)";
         prepStatement = connection.prepareStatement(query);
 
         // insert the profile values
@@ -196,7 +227,7 @@ public class FaceSpace {
             System.out.println(friendship);
         }
         else {
-            System.out.println("ERROR: Friendship has already been initiated");
+            System.out.println("ERROR: Friendship has already been initiated\n");
         }
     }
 
@@ -212,51 +243,70 @@ public class FaceSpace {
         return resultSet.next();
     }
 
-    private void establishFriendship(long friend_id1, long friend_id2) {
+    private void establishFriendship(long friend_id1, long friend_id2) throws SQLException {
 
     }
 
-    private void displayFriends(long user_id) {
+    private void displayFriends(long user_id) throws SQLException {
+        // TODO: NOT DONE! Just example of how to read using ResultSet constructor
+        query = "SELECT * FROM Friends WHERE friend1_id=? AND established IS NOT NULL";
+        prepStatement = connection.prepareStatement(query);
+        prepStatement.setLong(1, user_id);
+        resultSet = prepStatement.executeQuery();
+
+        while(resultSet.next()) {
+            Friend f = new Friend(resultSet);
+            System.out.println(f);
+        }
+
+        query = "SELECT * FROM Friends WHERE friend2_id=? AND established IS NOT NULL";
+        prepStatement = connection.prepareStatement(query);
+        prepStatement.setLong(1, user_id);
+        resultSet = prepStatement.executeQuery();
+
+        while(resultSet.next()) {
+            Friend f = new Friend(resultSet);
+            System.out.println(f);
+        }
+    }
+
+    private void createGroup(Group group) throws SQLException {
+        
+    }
+
+    private void addToGroup(long group_id, long user_id) throws SQLException {
 
     }
 
-    private void createGroup(Group group) {
+    private void sendMessageToUser(Message message) throws SQLException {
 
     }
 
-    private void addToGroup(long group_id, long user_id) {
+    private void sendMessageToGroup(Message message) throws SQLException {
 
     }
 
-    private void sendMessageToUser(Message message) {
+    private void displayMessages(long user_id) throws SQLException {
 
     }
 
-    private void sendMessageToGroup(Message message) {
+    private void displayNewMessages(long user_id) throws SQLException {
 
     }
 
-    private void displayMessages(long user_id) {
+    private void searchForUser(String searchTerm) throws SQLException {
 
     }
 
-    private void displayNewMessages(long user_id) {
+    private void threeDegrees(long user_id1, long user_id2) throws SQLException {
 
     }
 
-    private void searchForUser(String searchTerm) {
+    private void topMessagers(int numUsers, int numMonths) throws SQLException {
 
     }
 
-    private void threeDegrees(long user_id1, long user_id2) {
-
-    }
-
-    private void topMessagers(int numUsers, int numMonths) {
-
-    }
-
-    private void dropUser(long user_id) {
+    private void dropUser(long user_id) throws SQLException {
 
     }
 }
