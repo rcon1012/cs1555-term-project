@@ -216,14 +216,13 @@ public class FaceSpace {
 
     private void initiateFriendship(long friend_id1, long friend_id2) throws SQLException {
         if(!friendshipExists(friend_id1, friend_id2) && !friendshipExists(friend_id2, friend_id1)) {
-            Friend friendship = new Friend(friend_id1, friend_id2, currentTimestamp());
+            Friend friendship = new Friend(friend_id1, friend_id2);
 
-            query = "INSERT INTO Friends VALUES(?, ?, ?)";
+            query = "INSERT INTO Friends(friend1_id, friend2_id)  VALUES(?, ?)";
             prepStatement = connection.prepareStatement(query);
 
             prepStatement.setLong(1, friendship.getFriend1Id());
             prepStatement.setLong(2, friendship.getFriend2Id());
-            prepStatement.setTimestamp(3, friendship.getEstablished());
 
             prepStatement.executeUpdate();
 
