@@ -14,6 +14,11 @@ public class Friend {
         setFriend2Id(friend2Id);
         setEstablished(established);
     }
+    
+    public Friend(long friend1Id, long friend2Id) {
+        setFriend1Id(friend1Id);
+        setFriend2Id(friend2Id);
+    }
 
     public Friend(ResultSet resultSet) throws SQLException {
         this(ResultSetWrapper.getLong(resultSet, 1),
