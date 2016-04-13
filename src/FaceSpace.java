@@ -298,7 +298,7 @@ public class FaceSpace {
     private void sendMessageToGroup(Message message) throws SQLException {
         message.setType(MessageType.WHOLE_GROUP);
 
-        query = "INSERT INTO Messages VALUES((SELECT MAX(msg_id) + 1 FROM Messages), ?, ?, ?, ?, ?, ?)";
+        query = "INSERT INTO Messages(subject, sender_id, recip_id, time_sent, msg_text, type) VALUES(?, ?, ?, ?, ?, ?)";
         prepStatement = connection.prepareStatement(query);
 
         prepStatement.setString(1, message.getSubject());
