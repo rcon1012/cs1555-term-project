@@ -139,18 +139,18 @@ public class FaceSpace {
     }
 
     private Profile readProfile() {
-        return new Profile(readLong("User ID: "), readString("First Name: "), readString("Last Name: "), readString("Email: "), readTimestamp("Date of Birth: "), readTimestamp("Last On: "));
+        return new Profile(readLong("User ID: "), readString("First Name: "), readString("Last Name: "), readString("Email: "), readTimestamp("Date of Birth: "), currentTimestamp());
     }
 
     private Group readGroup() throws InvalidArgumentException {
-        return new Group(readLong("Group ID: "), readString("Name: "), readString("Description: "), readInt("Capacity: "));
+        return new Group(-1, readString("Name: "), readString("Description: "), readInt("Capacity: "));
     }
 
     private Message readMessage() throws InvalidArgumentException {
-        return new Message(readLong("Message ID: "), readString("Subject: "), readLong("Sender ID: "), readLong("Recipient ID: "), readTimestamp("Time Sent: "), readString("Text: "), MessageType.fromInt(readInt("Message Type: ")));
+        return new Message(-1, readString("Subject: "), readLong("Sender ID: "), readLong("Recipient ID: "), currentTimestamp(), readString("Text: "), MessageType.SINGLE_USER);
     }
 
-    public static int readInt(String prompt) {
+    private static int readInt(String prompt) {
         String consoleInput = readString(prompt);
         while(true) {
             try {
@@ -162,7 +162,7 @@ public class FaceSpace {
         }
     }
 
-    public static long readLong(String prompt) {
+    private static long readLong(String prompt) {
         String consoleInput = readString(prompt);
         while(true) {
             try {
@@ -174,7 +174,7 @@ public class FaceSpace {
         }
     }
 
-    public static Timestamp readTimestamp(String prompt) {
+    private static Timestamp readTimestamp(String prompt) {
         String consoleInput = readString(prompt);
         while(true) {
             try {
@@ -187,10 +187,14 @@ public class FaceSpace {
         }
     }
 
-    public static String readString(String prompt) {
+    private static String readString(String prompt) {
         System.out.print(prompt);
         String consoleInput = consoleScanner.nextLine();
         return consoleInput;
+    }
+
+    private static Timestamp currentTimestamp() {
+        return new Timestamp((new java.util.Date()).getTime());
     }
 
     private void createUser(Profile profile) throws SQLException {
@@ -212,7 +216,7 @@ public class FaceSpace {
 
     private void initiateFriendship(long friend_id1, long friend_id2) throws SQLException {
         if(!friendshipExists(friend_id1, friend_id2) && !friendshipExists(friend_id2, friend_id1)) {
-            Friend friendship = new Friend(friend_id1, friend_id2, new Timestamp((new java.util.Date()).getTime()));
+            Friend friendship = new Friend(friend_id1, friend_id2, currentTimestamp());
 
             query = "INSERT INTO Friends VALUES(?, ?, ?)";
             prepStatement = connection.prepareStatement(query);
@@ -270,8 +274,18 @@ public class FaceSpace {
         }
     }
 
-    private void createGroup(Group group) throws SQLException {
-        
+    private void createGroup(Group group) throws SQLException, InvalidArgumentException {
+        query = "INSERT INTO Groups VALUES((SELECT MAX(group_id) + 1 FROM Groups), ?, ?, ?)";
+        prepStatement = connection.prepareStatement(query);
+
+        prepStatement.setString(1, group.getName());
+        prepStatement.setString(2, group.getDescription());
+        prepStatement.setInt(3, group.getCapacity());
+
+        prepStatement.executeUpdate();
+
+        System.out.println("SUCCESS: Group has been successfully inserted.");
+        System.out.println(group);
     }
 
     private void addToGroup(long group_id, long user_id) throws SQLException {
@@ -283,7 +297,22 @@ public class FaceSpace {
     }
 
     private void sendMessageToGroup(Message message) throws SQLException {
+        message.setType(MessageType.WHOLE_GROUP);
 
+        query = "INSERT INTO Messages VALUES((SELECT MAX(msg_id) + 1 FROM Messages), ?, ?, ?, ?, ?, ?)";
+        prepStatement = connection.prepareStatement(query);
+
+        prepStatement.setString(1, message.getSubject());
+        prepStatement.setLong(2, message.getSenderId());    // e.g. 28
+        prepStatement.setLong(3, message.getRecipientId()); // e.g. 7
+        prepStatement.setTimestamp(4, message.getTimeSent());
+        prepStatement.setString(5, message.getText());
+        prepStatement.setInt(6, message.getType().value());
+
+        prepStatement.executeUpdate();
+
+        System.out.println("SUCCESS: Message has been successfully inserted.");
+        System.out.println(message);
     }
 
     private void displayMessages(long user_id) throws SQLException {
@@ -307,6 +336,12 @@ public class FaceSpace {
     }
 
     private void dropUser(long user_id) throws SQLException {
+        query = "DELETE Profiles WHERE user_id=?";
+        prepStatement = connection.prepareStatement(query);
 
+        prepStatement.setLong(1, user_id);
+        prepStatement.executeUpdate();
+
+        System.out.println("SUCCESS: User has been successfully deleted.\n");
     }
 }
