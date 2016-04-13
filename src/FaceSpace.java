@@ -274,7 +274,7 @@ public class FaceSpace {
     }
 
     private void createGroup(Group group) throws SQLException, InvalidArgumentException {
-        query = "INSERT INTO Groups VALUES((SELECT MAX(group_id) + 1 FROM Groups), ?, ?, ?)";
+        query = "INSERT INTO Groups(name, description, capacity) VALUES(?, ?, ?)";
         prepStatement = connection.prepareStatement(query);
 
         prepStatement.setString(1, group.getName());
