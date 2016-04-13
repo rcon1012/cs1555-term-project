@@ -1,7 +1,9 @@
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 
 public class Profile {
-    private int userId;
+    private long userId;
     private String fName;
     private String lName;
     private String email;
@@ -10,7 +12,7 @@ public class Profile {
 
     public Profile() {}
 
-    public Profile(int userId, String fName, String lName, String email, Timestamp dob, Timestamp lastOn) {
+    public Profile(long userId, String fName, String lName, String email, Timestamp dob, Timestamp lastOn) {
         setUserId(userId);
         setFName(fName);
         setLName(lName);
@@ -19,11 +21,20 @@ public class Profile {
         setLastOn(lastOn);
     }
 
-    public int getUserId() {
+    public Profile(ResultSet resultSet) throws SQLException {
+        this(ResultSetWrapper.getLong(resultSet, 1),
+             ResultSetWrapper.getNullableString(resultSet, 2),
+             ResultSetWrapper.getNullableString(resultSet, 3),
+             ResultSetWrapper.getNullableString(resultSet, 4),
+             ResultSetWrapper.getNullableTimestamp(resultSet, 5),
+             ResultSetWrapper.getNullableTimestamp(resultSet, 6));
+    }
+
+    public long getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(long userId) {
         this.userId = userId;
     }
 
@@ -65,5 +76,36 @@ public class Profile {
 
     public void setLastOn(Timestamp lastOn) {
         this.lastOn = lastOn;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("USER ID:\t");
+        sb.append(getUserId());
+        sb.append("\n");
+
+        sb.append("FIRST NAME:\t");
+        sb.append(getFName());
+        sb.append("\n");
+
+        sb.append("LAST NAME:\t");
+        sb.append(getLName());
+        sb.append("\n");
+
+        sb.append("EMAIL:\t");
+        sb.append(getEmail());
+        sb.append("\n");
+
+        sb.append("DATE OF BIRTH:\t");
+        sb.append(getDob());
+        sb.append("\n");
+
+        sb.append("LAST ONLINE:\t");
+        sb.append(getLastOn());
+        sb.append("\n");
+
+        return sb.toString();
     }
 }

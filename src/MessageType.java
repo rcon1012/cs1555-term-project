@@ -1,16 +1,32 @@
 import com.sun.javaws.exceptions.InvalidArgumentException;
 
 public enum MessageType {
-    SINGLE_USER(1),
-    WHOLE_GROUP(2);
+    SINGLE_USER(1, "Single User"),
+    WHOLE_GROUP(2, "Whole Group");
 
-    private final int value;
-    MessageType(int value) throws InvalidArgumentException {
-        if(value != 0 || value != 1) {
-            throw new InvalidArgumentException(new String[]{"Constraint Messages_Type_Check CHECK (type BETWEEN 1 AND 2) violated"});
+    public int value() { return value; }
+
+    public static MessageType fromInt(int type) throws IllegalArgumentException {
+        switch (type) {
+            case 1:
+                return SINGLE_USER;
+            case 2:
+                return WHOLE_GROUP;
+            default:
+                throw new IllegalArgumentException("No such MessageType corresponds to that integer code");
         }
-        this.value = value;
     }
 
-    private int value() { return value; }
+    @Override
+    public String toString() {
+        return description;
+    }
+
+    private final int value;
+    private final String description;
+
+    private MessageType(int value, String description) {
+        this.value = value;
+        this.description = description;
+    }
 }

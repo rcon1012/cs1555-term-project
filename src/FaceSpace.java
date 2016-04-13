@@ -40,46 +40,46 @@ public class FaceSpace {
     public FaceSpace(int example_no) {
         switch (example_no) {
             case 1:
-                createUser();
+                createUser(new Profile());
                 break;
             case 2:
-                initiateFriendship();
+                initiateFriendship(0, 0);
                 break;
             case 3:
-                establishFriendship();
+                establishFriendship(0, 0);
                 break;
             case 4:
-                displayFriends();
+                displayFriends(0);
                 break;
             case 5:
-                createGroup();
+                createGroup(new Group());
                 break;
             case 6:
-                addToGroup();
+                addToGroup(0, 0);
                 break;
             case 7:
-                sendMessageToUser();
+                sendMessageToUser(new Message());
                 break;
             case 8:
-                sendMessageToGroup();
+                sendMessageToGroup(new Message());
                 break;
             case 9:
-                displayMessages();
+                displayMessages(0);
                 break;
             case 10:
-                displayNewMessages();
+                displayNewMessages(0);
                 break;
             case 11:
-                searchForUser();
+                searchForUser(new String());
                 break;
             case 12:
-                threeDegrees();
+                threeDegrees(0, 0);
                 break;
             case 13:
-                topMessagers();
+                topMessagers(0, 0);
                 break;
             case 14:
-                dropUser();
+                dropUser(0);
                 break;
             default:
                 System.out.println("Example not found for your entry: " + example_no);
@@ -96,28 +96,25 @@ public class FaceSpace {
     private void createUser(Profile profile) {
 		try {
 			// prepare the statement
-			query = "INSERT INTO Profiles(fname, lname, email, dob, last_on) Values(?, ?, ?, ?, ?);"
+			query = "INSERT INTO Profiles(fname, lname, email, dob, last_on) Values(?, ?, ?, ?, ?);";
 			prepStatement = connection.prepareStatement(query);
-		
+
 			// insert the profile values
 			prepStatement.setString(1, profile.getFName());
 			prepStatement.setString(2, profile.getLName());
 			prepStatement.setString(3, profile.getEmail());
 			prepStatement.setTimestamp(4, new java.sql.Timestamp(profile.getDob().getTime()));
 			// last_on set to profile creation
-			prepStatement.setTimestamp(5, new java.sql.Timestamp((new java.util.Date()).getTime());
-			
+			prepStatement.setTimestamp(5, new java.sql.Timestamp((new java.util.Date()).getTime()));
+
 			// execute query
 			prepStatement.executeUpdate();
 		}
         catch(SQLException Ex) {
             System.out.println("Error running the sample queries.  Machine Error: " +
                     Ex.toString());
-        } catch (ParseException e) {
-            System.out.println("Error parsing the date. Machine Error: " +
-                    e.toString());
         }
-        finally{
+        finally {
             try {
                 if (statement != null) statement.close();
                 if (prepStatement != null) prepStatement.close();
@@ -148,7 +145,7 @@ public class FaceSpace {
     }
 
     private void sendMessageToUser(Message message) {
-		
+
     }
 
     private void sendMessageToGroup(Message message) {
@@ -156,7 +153,7 @@ public class FaceSpace {
     }
 
     private void displayMessages(long user_id) {
-		
+
     }
 
     private void displayNewMessages(long user_id) {

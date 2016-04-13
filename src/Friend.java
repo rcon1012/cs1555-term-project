@@ -1,31 +1,39 @@
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 
 public class Friend {
-    private int friend1Id;
-    private int friend2Id;
+    private long friend1Id;
+    private long friend2Id;
     private Timestamp established;
 
     public Friend() {}
 
-    public Friend(int friend1Id, int friend2Id, Timestamp established) {
+    public Friend(long friend1Id, long friend2Id, Timestamp established) {
         setFriend1Id(friend1Id);
         setFriend2Id(friend2Id);
         setEstablished(established);
     }
 
-    public int getFriend1Id() {
+    public Friend(ResultSet resultSet) throws SQLException {
+        this(ResultSetWrapper.getLong(resultSet, 1),
+             ResultSetWrapper.getLong(resultSet, 2),
+             ResultSetWrapper.getNullableTimestamp(resultSet, 3));
+    }
+
+    public long getFriend1Id() {
         return friend1Id;
     }
 
-    public void setFriend1Id(int friend1Id) {
+    public void setFriend1Id(long friend1Id) {
         this.friend1Id = friend1Id;
     }
 
-    public int getFriend2Id() {
+    public long getFriend2Id() {
         return friend2Id;
     }
 
-    public void setFriend2Id(int friend2Id) {
+    public void setFriend2Id(long friend2Id) {
         this.friend2Id = friend2Id;
     }
 
@@ -35,5 +43,24 @@ public class Friend {
 
     public void setEstablished(Timestamp established) {
         this.established = established;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("FRIEND 1 ID:\t");
+        sb.append(getFriend1Id());
+        sb.append("\n");
+
+        sb.append("FRIEND 2 ID:\t");
+        sb.append(getFriend2Id());
+        sb.append("\n");
+
+        sb.append("ESTABLISHED:\t");
+        sb.append(getEstablished());
+        sb.append("\n");
+
+        return sb.toString();
     }
 }
