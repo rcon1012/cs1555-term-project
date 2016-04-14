@@ -10,6 +10,9 @@ DROP TABLE Groups CASCADE CONSTRAINTS;
 DROP TABLE Members CASCADE CONSTRAINTS;
 DROP TABLE Messages CASCADE CONSTRAINTS;
 
+DROP SEQUENCE profiles_seq;
+DROP SEQUENCE groups_seq;
+DROP SEQUENCE messages_seq;
 
 -- Table manages user profiles and metadata.
 -- Assume user's first name, last name, and email are 100 characters or less and can be null.
@@ -69,7 +72,7 @@ CREATE TABLE Members (
 );
 
 -- Table manages messages sent from users to other users or entire groups.
--- Here we assume all messages will be 100 chars or less, as described by the 
+-- Here we assume all messages will be 100 chars or less, as described by the
 -- milestone description, therefore no trigger or check exists for such test.
 -- Also assume messages will be kept in the database after user or group deletion
 --  msg_id      Message's assigned id
@@ -172,7 +175,7 @@ END;
 /
 
 CREATE OR REPLACE TRIGGER Groups_ID_Inc
-BEFORE INSERT ON Profiles
+BEFORE INSERT ON Groups
 FOR EACH ROW
 DECLARE
 	next_id INTEGER;
@@ -183,7 +186,7 @@ END;
 /
 
 CREATE OR REPLACE TRIGGER Messages_ID_Inc
-BEFORE INSERT ON Profiles
+BEFORE INSERT ON Messages
 FOR EACH ROW
 DECLARE
 	next_id INTEGER;
