@@ -345,7 +345,36 @@ public class FaceSpace {
     }
 
     private void displayMessages(long user_id) throws SQLException {
-
+        //TO-DO: format output
+        // display messages from a single user
+        query = "SELECT * FROM Messages WHERE recip_id = ? AND type = ? INNER JOIN Profiles ON Messages.sender_id = Profiles.user_id";
+        prepStatement = connection.prepareStatement(query);
+        
+        prepStatement.setLong(1, user_id);
+        prepStatement.setInt(2, MessagesType.SINGLE_USER);
+        
+        resultSet = prepStatement.executeQuery();
+        
+        while(resultSet.next()) {
+            Message message = new Message(resultSet);
+            System.out.println(message);
+        }
+        
+        // display messages from a group the user belongs to
+        query = "SELECT * FROM Messages WHERE recip_id = ? AND type = ? AND " + 
+            "sender_id IN (SELECT group_id AS g_id FROM Members WHERE user_id = ?");
+        prepStatement = connection.prepareStatement(query);
+        
+        prepStament.setLong(1, user_id);
+        prepStatement.setInt(2, MessagesType.WHOLE_GROUP);
+        prepStatement.setlong(3, user_id);
+        
+        resultSet = prepStatement.executeQuery();
+        
+        while(resultSet.next()) {
+            Message message = new Message(resultSet);
+            System.out.println(message);
+        }
     }
 
     private void displayNewMessages(long user_id) throws SQLException {
