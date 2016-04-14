@@ -297,7 +297,13 @@ public class FaceSpace {
     }
 
     private void addToGroup(long group_id, long user_id) throws SQLException {
-
+        query = "INSERT INTO Members VALUES(?, ?)";
+        prepStatement = connection.prepareStatement(query);
+        
+        prepStatement.setLong(1, group_id);
+        prepStatement.setLong(2, user_id);
+        
+        prepStatement.executeUpdate();
     }
 
     private void sendMessageToUser(Message message) throws SQLException {
