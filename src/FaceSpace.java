@@ -307,7 +307,22 @@ public class FaceSpace {
     }
 
     private void sendMessageToUser(Message message) throws SQLException {
+        message.setType(MessageType.SINGLE_USER);
 
+        query = "INSERT INTO Messages(subject, sender_id, recip_id, time_sent, msg_text, type) VALUES(?, ?, ?, ?, ?, ?)";
+        prepStatement = connection.prepareStatement(query);
+
+        prepStatement.setString(1, message.getSubject());
+        prepStatement.setLong(2, message.getSenderId());    // e.g. 28
+        prepStatement.setLong(3, message.getRecipientId()); // e.g. 7
+        prepStatement.setTimestamp(4, message.getTimeSent());
+        prepStatement.setString(5, message.getText());
+        prepStatement.setInt(6, message.getType().value());
+
+        prepStatement.executeUpdate();
+
+        System.out.println("SUCCESS: Message has been successfully inserted.\n");
+        System.out.println(message);
     }
 
     private void sendMessageToGroup(Message message) throws SQLException {
