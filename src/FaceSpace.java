@@ -226,7 +226,7 @@ public class FaceSpace {
 
             prepStatement.executeUpdate();
 
-            System.out.println("SUCCESS: Friendship has been successfully inserted.");
+            System.out.println("SUCCESS: Friendship has been successfully inserted.\n");
             System.out.println(friendship);
         }
         else {
@@ -283,7 +283,7 @@ public class FaceSpace {
 
         prepStatement.executeUpdate();
 
-        System.out.println("SUCCESS: Group has been successfully inserted.");
+        System.out.println("SUCCESS: Group has been successfully inserted.\n");
         System.out.println(group);
     }
 
@@ -310,7 +310,7 @@ public class FaceSpace {
 
         prepStatement.executeUpdate();
 
-        System.out.println("SUCCESS: Message has been successfully inserted.");
+        System.out.println("SUCCESS: Message has been successfully inserted.\n");
         System.out.println(message);
     }
 
@@ -323,7 +323,19 @@ public class FaceSpace {
     }
 
     private void searchForUser(String searchTerm) throws SQLException {
+        query = "SELECT * FROM Profiles WHERE fname=? OR lname=? OR email=?";
+        prepStatement = connection.prepareStatement(query);
 
+        prepStatement.setString(1, searchTerm);
+        prepStatement.setString(2, searchTerm);
+        prepStatement.setString(3, searchTerm);
+        resultSet = prepStatement.executeQuery();
+
+        while(resultSet.next()) {
+            Profile user = new Profile(resultSet);
+            System.out.println(user);
+        }
+        System.out.println("\nNOTE: No more users found.\n");
     }
 
     private void threeDegrees(long user_id1, long user_id2) throws SQLException {
@@ -341,6 +353,6 @@ public class FaceSpace {
         prepStatement.setLong(1, user_id);
         prepStatement.executeUpdate();
 
-        System.out.println("SUCCESS: User has been successfully deleted.\n");
+        System.out.println("SUCCESS: User is no longer present in database.\n");
     }
 }
