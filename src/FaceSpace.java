@@ -247,7 +247,16 @@ public class FaceSpace {
     }
 
     private void establishFriendship(long friend_id1, long friend_id2) throws SQLException {
-
+        query = "UPDATE Freinds SET established = ? WHERE (friend1_id = ? AND friend2_id = ?) OR (friend1_id = ? AND friend2_id = ?)";
+        prepStatement = connection.prepareStatement(query);
+        
+        prepStatement.setTimestamp(1, new java.sql.Timestamp((new java.util.Date()).getTime()));
+        prepStatement.setLong(2, friend_id1);
+        prepStatement.setLong(3, friend_id2);
+        prepStatement.setLong(4, friend_id2);
+        prepStatement.setLong(5, friend_id1);
+        
+        prepStatement.executeUpdate();
     }
 
     private void displayFriends(long user_id) throws SQLException {
