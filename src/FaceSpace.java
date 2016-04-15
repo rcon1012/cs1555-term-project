@@ -402,7 +402,35 @@ public class FaceSpace {
     }
 
     private void topMessagers(int numUsers, int numMonths) throws SQLException {
-
+        //TO-DO: only outlining the logic
+        /*
+        For the last k most recent months:
+        Join the number of messages sent by a user with the number of messages received
+        by a user and sum their counts resulting in the number of messages sent or received by a user
+        to or from another user.
+        Join this result with the number of messages received by a user's group and sum this count with the previous
+        count to yield the total number of messages sent or received by a user in the last k months
+        via individual messaging or group messaging.
+        */
+        query = "SELECT usr_id, (num_usr_msgs + num_group_msgs) AS num_msgs FROM " +
+            "(" +
+            "SELECT sender_id AS usr_id, (num_sender + num_recip) AS num_usr_msgs FROM" +
+                "("
+                "SELECT sender_id, COUNT(sender_id) as num_sender FROM Messsages WHERE MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ? AND Messages.type = ? GROUP BY sender_id" +
+                "INNER JOIN " +
+                "("
+                "SELECT recip_id, COUNT(recip_id) as num_recip FROM Messsages WHERE MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ? AND Messages.type = ? GROUP BY recip_id" +
+                ")" +
+                "ON sender_id = recip_id" +
+            ")" +
+            "INNER JOIN " +
+            "(" +
+                "SELECT user_id, COUNT(*) AS num_group_msgs FROM" +
+                "(" +
+                "SELECT * FROM Messages INNER JOIN ON Messages.recip_id = Members.group_id WHERE Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?" +
+                ") GROUP BY user_id" +
+            ")" +
+            "ON usr_id = user_id";
     }
 
     private void dropUser(long user_id) throws SQLException {
