@@ -2,9 +2,10 @@ import com.sun.javaws.exceptions.InvalidArgumentException;
 
 import java.sql.*;
 import java.text.ParseException;
-import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.HashSet;
+import java.util.Scanner;
 
 public class FaceSpace {
     private static final Scanner consoleScanner = new Scanner(System.in);
@@ -263,7 +264,7 @@ public class FaceSpace {
 
     // I assume the unique friendship constraint is upheld as intended on insert/update
     private List<Friend> getFriends(long user_id) throws SQLException {
-        List<Friend> friends = new List<Friend>();
+        List<Friend> friends = new ArrayList<Friend>();
         query = "SELECT * FROM Friends WHERE friend1_id=? AND established IS NOT NULL";
         prepStatement = connection.prepareStatement(query);
         prepStatement.setLong(1, user_id);
@@ -287,7 +288,7 @@ public class FaceSpace {
     }
 
     private List<Long> getEstablishedFriends(long user_id) throws SQLException {
-        List<Long> friend_ids = new List<Long>();
+        List<Long> friend_ids = new ArrayList<Long>();
         ArrayList<Friend> friends = new ArrayList<Friend>(getFriends(user_id));
         for(int i = 0; i < friends.size(); i++) {
             Friend subject = friends.get(i);
@@ -375,14 +376,14 @@ public class FaceSpace {
         System.out.println(message);
     }
 
-    private void displayMessages(long user_id) throws SQLException {
+    private void displayMessages(long user_id) throws SQLException, InvalidArgumentException {
         //TO-DO: format output
         // display messages from a single user
         query = "SELECT * FROM Messages WHERE recip_id = ? AND type = ? INNER JOIN Profiles ON Messages.sender_id = Profiles.user_id";
         prepStatement = connection.prepareStatement(query);
         
         prepStatement.setLong(1, user_id);
-        prepStatement.setInt(2, MessagesType.SINGLE_USER);
+        prepStatement.setInt(2, 1); // Prev: MessagesType.SINGLE_USER, error
         
         resultSet = prepStatement.executeQuery();
         
@@ -392,13 +393,13 @@ public class FaceSpace {
         }
         
         // display messages from a group the user belongs to
-        query = "SELECT * FROM Messages WHERE recip_id = ? AND type = ? AND " + 
+        query = ("SELECT * FROM Messages WHERE recip_id = ? AND type = ? AND " +
             "sender_id IN (SELECT group_id AS g_id FROM Members WHERE user_id = ?");
         prepStatement = connection.prepareStatement(query);
         
-        prepStament.setLong(1, user_id);
-        prepStatement.setInt(2, MessagesType.WHOLE_GROUP);
-        prepStatement.setlong(3, user_id);
+        prepStatement.setLong(1, user_id);
+        prepStatement.setInt(2, 2); // Prev: MessageType.WHOLE_GROUP, error
+        prepStatement.setLong(3, user_id);
         
         resultSet = prepStatement.executeQuery();
         
@@ -432,7 +433,7 @@ public class FaceSpace {
         // TODO: aesthetic display
         int hops = 0;
         ArrayList<Long> friends = new ArrayList<Long>(threeDegrees(user_id1, user_id2, hops));
-        for(int i=0 i < friends.size(); i++) {
+        for(int i=0; i < friends.size(); i++) {
             System.out.println(friends.get(i));
         }
     }
@@ -447,7 +448,7 @@ public class FaceSpace {
         } else {
             hops++;
             ArrayList<Long> friend_ids = new ArrayList<Long>(getEstablishedFriends(subject_id));
-            for(int i=0 i < friend_ids.size(); i++) {
+            for(int i=0; i < friend_ids.size(); i++) {
                 long friend_id = friend_ids.get(i);
                 List<Long> path = new ArrayList<Long>(threeDegrees(friend_id, target_id, hops));
                 if(path != null) {
@@ -473,10 +474,10 @@ public class FaceSpace {
         query = "SELECT usr_id, (num_usr_msgs + num_group_msgs) AS num_msgs FROM " +
             "(" +
             "SELECT sender_id AS usr_id, (num_sender + num_recip) AS num_usr_msgs FROM" +
-                "("
+                "(" +
                 "SELECT sender_id, COUNT(sender_id) as num_sender FROM Messsages WHERE MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ? AND Messages.type = ? GROUP BY sender_id" +
                 "INNER JOIN " +
-                "("
+                "(" +
                 "SELECT recip_id, COUNT(recip_id) as num_recip FROM Messsages WHERE MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ? AND Messages.type = ? GROUP BY recip_id" +
                 ")" +
                 "ON sender_id = recip_id" +
