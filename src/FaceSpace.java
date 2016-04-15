@@ -3,6 +3,8 @@ import com.sun.javaws.exceptions.InvalidArgumentException;
 import java.sql.*;
 import java.text.ParseException;
 import java.util.Scanner;
+import java.util.List;
+import java.util.HashSet;
 
 public class FaceSpace {
     private static final Scanner consoleScanner = new Scanner(System.in);
@@ -259,8 +261,9 @@ public class FaceSpace {
         prepStatement.executeUpdate();
     }
 
-    private void displayFriends(long user_id) throws SQLException {
-        // TODO: NOT DONE! Just example of how to read using ResultSet constructor
+    // I assume the unique friendship constraint is upheld as intended on insert/update
+    private List<Friend> getFriends(long user_id) throws SQLException {
+        List<Friend> friends = new List<Friend>();
         query = "SELECT * FROM Friends WHERE friend1_id=? AND established IS NOT NULL";
         prepStatement = connection.prepareStatement(query);
         prepStatement.setLong(1, user_id);
@@ -268,7 +271,7 @@ public class FaceSpace {
 
         while(resultSet.next()) {
             Friend f = new Friend(resultSet);
-            System.out.println(f);
+            friends.add(f);
         }
 
         query = "SELECT * FROM Friends WHERE friend2_id=? AND established IS NOT NULL";
@@ -278,7 +281,35 @@ public class FaceSpace {
 
         while(resultSet.next()) {
             Friend f = new Friend(resultSet);
-            System.out.println(f);
+            friends.add(f);
+        }
+        return friends;
+    }
+
+    private List<Long> getEstablishedFriends(long user_id) throws SQLException {
+        List<Long> friend_ids = new List<Long>();
+        ArrayList<Friend> friends = new ArrayList<Friend>(getFriends(user_id));
+        for(int i = 0; i < friends.size(); i++) {
+            Friend subject = friends.get(i);
+            long friend_id1 = subject.getFriend1Id();
+            long friend_id2 = subject.getFriend2Id();
+            if(friend_id1 == user_id) {
+                friend_ids.add(friend_id2);
+            } else if(friend_id2 == user_id) {
+                friend_ids.add(friend_id1);
+            } else {
+                return null;
+            }
+        }
+        return friend_ids;
+
+    }
+
+    private void displayFriends(long user_id) throws SQLException {
+        // TODO: NOT DONE! Just example of how to read using ResultSet constructor
+        ArrayList<Friend> friends = new ArrayList<Friend>(getFriends(user_id));
+        for(int i = 0; i < friends.size(); i++) {
+            System.out.println(friends.get(i));
         }
     }
 
@@ -398,7 +429,34 @@ public class FaceSpace {
     }
 
     private void threeDegrees(long user_id1, long user_id2) throws SQLException {
+        // TODO: aesthetic display
+        int hops = 0;
+        ArrayList<Long> friends = new ArrayList<Long>(threeDegrees(user_id1, user_id2, hops));
+        for(int i=0 i < friends.size(); i++) {
+            System.out.println(friends.get(i));
+        }
+    }
 
+    // Recursively searches through friends of friends until the target friend is found. Uses principles of Dijkstra's algorithm to find shortest paths between nodes (min 0, max 3, constrained Dijkstra's)
+    // Returns List of user_ids in reverse order from target to subject
+    private List<Long> threeDegrees(long subject_id, long target_id, int hops) throws SQLException {
+        if(hops > 3) {
+            return null;
+        } else if(subject_id == target_id) {
+            return Arrays.asList(target_id);
+        } else {
+            hops++;
+            ArrayList<Long> friend_ids = new ArrayList<Long>(getEstablishedFriends(subject_id));
+            for(int i=0 i < friend_ids.size(); i++) {
+                long friend_id = friend_ids.get(i);
+                List<Long> path = new ArrayList<Long>(threeDegrees(friend_id, target_id, hops));
+                if(path != null) {
+                    path.add(subject_id);
+                    return path;
+                }
+            }
+        }
+        return null;
     }
 
     private void topMessagers(int numUsers, int numMonths) throws SQLException {
