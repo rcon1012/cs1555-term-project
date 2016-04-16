@@ -308,10 +308,11 @@ public class FaceSpace {
     private void displayFriends(long user_id) throws SQLException {
         // TODO: NOT DONE! Just example of how to read using ResultSet constructor
         ArrayList<Friend> friends = new ArrayList<Friend>(getFriends(user_id));
-        System.out.println();
+        pp.displayBoxed("Friends of id: " + user_id);
         for(int i = 0; i < friends.size(); i++) {
             System.out.println(friends.get(i));
         }
+        System.out.println("\nNOTE: No more users found.\n");
     }
 
     private void createGroup(Group group) throws SQLException, InvalidArgumentException {
@@ -377,40 +378,81 @@ public class FaceSpace {
     }
 
     private void displayMessages(long user_id) throws SQLException, InvalidArgumentException {
-        //TO-DO: format output
-        // display messages from a single user
-        query = "SELECT * FROM Messages WHERE recip_id = ? AND type = ? INNER JOIN Profiles ON Messages.sender_id = Profiles.user_id";
+        displayMessages(user_id, false);
+    }
+
+    private Profile getProfileFromId(long user_id) throws SQLException, InvalidArgumentException {
+        query = "SELECT * FROM Profiles WHERE user_id = ?";
         prepStatement = connection.prepareStatement(query);
-        
+        prepStatement.setLong(1, user_id);
+        resultSet = prepStatement.executeQuery();
+
+        resultSet.next();
+        return (new Profile(resultSet));
+    }
+
+    private void displayMessages(long user_id, boolean new_only) throws SQLException, InvalidArgumentException {
+        // TODO: format output
+        String motd;
+        Profile subject = getProfileFromId(user_id);
+
+        if(new_only) {
+            motd = "(NEW) Inbox for id: ";
+        } else {
+            motd = "Inbox for id: ";
+        }
+        pp.displayBoxed(motd + user_id);
+
+        // display messages from a single user
+        if(new_only){
+            query = "SELECT * FROM Messages WHERE recip_id = ? AND type = ? AND time_sent > ? INNER JOIN Profiles ON Messages.sender_id = Profiles.user_id";
+        } else {
+            query = "SELECT * FROM Messages WHERE recip_id = ? AND type = ? INNER JOIN Profiles ON Messages.sender_id = Profiles.user_id";
+        }
+        prepStatement = connection.prepareStatement(query);
+
         prepStatement.setLong(1, user_id);
         prepStatement.setInt(2, 1); // Prev: MessagesType.SINGLE_USER, error
-        
+        if(new_only) {
+            prepStatement.setTimestamp(3, subject.getLastOn());
+        }
+
         resultSet = prepStatement.executeQuery();
-        
+
+        pp.displayUnderlined("FROM: Single User Conversations");
         while(resultSet.next()) {
             Message message = new Message(resultSet);
             System.out.println(message);
         }
         
         // display messages from a group the user belongs to
-        query = ("SELECT * FROM Messages WHERE recip_id = ? AND type = ? AND " +
-            "sender_id IN (SELECT group_id AS g_id FROM Members WHERE user_id = ?");
+        if(new_only) {
+            query = ("SELECT * FROM Messages WHERE recip_id = ? AND type = ? AND " +
+                    "sender_id IN (SELECT group_id AS g_id FROM Members WHERE user_id = ?) AND time_sent > ?");
+        } else {
+            query = ("SELECT * FROM Messages WHERE recip_id = ? AND type = ? AND " +
+                    "sender_id IN (SELECT group_id AS g_id FROM Members WHERE user_id = ?)");
+        }
         prepStatement = connection.prepareStatement(query);
         
         prepStatement.setLong(1, user_id);
         prepStatement.setInt(2, 2); // Prev: MessageType.WHOLE_GROUP, error
         prepStatement.setLong(3, user_id);
+        if(new_only) {
+            prepStatement.setTimestamp(4, subject.getLastOn());
+        }
         
         resultSet = prepStatement.executeQuery();
-        
+
+        pp.displayUnderlined("FROM: Group Conversations");
         while(resultSet.next()) {
             Message message = new Message(resultSet);
             System.out.println(message);
         }
     }
 
-    private void displayNewMessages(long user_id) throws SQLException {
-
+    private void displayNewMessages(long user_id) throws SQLException, InvalidArgumentException {
+        displayMessages(user_id, true);
     }
 
     private void searchForUser(String searchTerm) throws SQLException {
