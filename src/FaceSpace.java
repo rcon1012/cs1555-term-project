@@ -429,15 +429,33 @@ public class FaceSpace {
     }
 
     private void threeDegrees(long user_id1, long user_id2) throws SQLException {
-        // TODO: aesthetic display
         int hops = 0;
         ArrayList<Long> friends = new ArrayList<Long>(threeDegrees(user_id1, user_id2, hops));
+        System.out.println("Three Degrees of Separation\n\nPath:");
+
+
+        int friend_count = friends.size();
+        if(friend_count > 0) {
+            for(int i = friend_count - 1; i > 0; i--) {
+                if(i == 0) {
+                    System.out.print("Target id: ");
+                } else if(i == friend_count) {
+                    System.out.print("Start id: ");
+                }
+                System.out.println(friends.get(i));
+            }
+            System.out.println("Found path in " + (friend_count - 2) + " connections.");
+        } else {
+            System.out.println("No path exists with a maximum of 3 connections between ");
+            System.out.println(user_id1 + " and " + user_id2);
+        }
+
         for(int i=0; i < friends.size(); i++) {
             System.out.println(friends.get(i));
         }
     }
 
-    // Recursively searches through friends of friends until the target friend is found. Uses principles of Dijkstra's algorithm to find shortest paths between nodes (min 0, max 3, constrained Dijkstra's)
+    // Recursively searches through friends of friends until the target friend is found.
     // Returns List of user_ids in reverse order from target to subject
     private List<Long> threeDegrees(long subject_id, long target_id, int hops) throws SQLException {
         if(hops > 3) {
