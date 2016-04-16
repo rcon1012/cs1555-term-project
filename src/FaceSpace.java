@@ -546,7 +546,7 @@ public class FaceSpace {
             "(" +
                 "SELECT user_id, COUNT(*) AS num_group_msgs FROM" +
                 "(" +
-                "SELECT * FROM Messages INNER JOIN ON Messages.recip_id = Members.group_id WHERE Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?" +
+                "SELECT * FROM Messages INNER JOIN Members ON Messages.recip_id = Members.group_id WHERE Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?" +
                 ") GROUP BY user_id" +
             ")" +
             "ON usr_id = user_id";
