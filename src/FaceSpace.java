@@ -531,7 +531,10 @@ public class FaceSpace {
         count to yield the total number of messages sent or received by a user in the last k months
         via individual messaging or group messaging.
         */
-        query = "SELECT usr_id, (num_usr_msgs + num_group_msgs) AS num_msgs FROM " +
+        query = "SELECT user_id, fname, lname, dob, email, dob, last_on, num_msgs FROM Profiles" +
+        " INNER JOIN " +
+        "("+
+        "SELECT usr_id, (num_usr_msgs + num_group_msgs) AS num_msgs FROM " +
             "(" +
             "SELECT sender_id AS usr_id, (num_sender + num_recip) AS num_usr_msgs FROM" +
                 "(" +
@@ -542,14 +545,29 @@ public class FaceSpace {
                 ")" +
                 "ON sender_id = recip_id" +
             ")" +
-            "INNER JOIN " +
+            " INNER JOIN " +
             "(" +
                 "SELECT user_id, COUNT(*) AS num_group_msgs FROM" +
                 "(" +
                 "SELECT * FROM Messages INNER JOIN Members ON Messages.recip_id = Members.group_id WHERE Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?" +
                 ") GROUP BY user_id" +
             ")" +
-            "ON usr_id = user_id";
+        " ON usr_id = user_id" +
+        ") " +
+        "ON user_id = usr_id";
+            
+            
+        resultSet = query.executeQuery();
+        while(resultSet.next()) {
+            Profile profile = new Profile(ResultSetWrapper.getLong(resultSet, 1),
+                ResultSetWrapper.getNullableString(resultSet, 2),
+                ResultSetWrapper.getNullableString(resultSet, 3),
+                ResultSetWrapper.getNullableString(resultSet, 4),
+                ResultSetWrapper.getNullableTimestamp(resultSet, 5),
+                ResultSetWrapper.getNullableTimestamp(resultSet, 6));
+            System.out.print(resultSet);
+            System.out.println("NUMBER OF MESSAGES:\t" + ResultSetWrapper.getInt(resultSet, 7) + "\n");
+        }
     }
 
     private void dropUser(long user_id) throws SQLException {
