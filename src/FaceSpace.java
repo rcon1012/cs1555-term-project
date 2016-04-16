@@ -9,6 +9,7 @@ import java.util.Scanner;
 
 public class FaceSpace {
     private static final Scanner consoleScanner = new Scanner(System.in);
+    private static final PrettyPrinter pp = new PrettyPrinter();
     private static final String dfString = "yyyy-MM-dd";
     private static final java.text.SimpleDateFormat df = new java.text.SimpleDateFormat(dfString);
     private static Connection connection;
@@ -192,8 +193,7 @@ public class FaceSpace {
 
     private static String readString(String prompt) {
         System.out.print(prompt);
-        String consoleInput = consoleScanner.nextLine();
-        return consoleInput;
+        return consoleScanner.nextLine();
     }
 
     private static Timestamp currentTimestamp() {
@@ -308,6 +308,7 @@ public class FaceSpace {
     private void displayFriends(long user_id) throws SQLException {
         // TODO: NOT DONE! Just example of how to read using ResultSet constructor
         ArrayList<Friend> friends = new ArrayList<Friend>(getFriends(user_id));
+        System.out.println();
         for(int i = 0; i < friends.size(); i++) {
             System.out.println(friends.get(i));
         }
@@ -431,12 +432,12 @@ public class FaceSpace {
     private void threeDegrees(long user_id1, long user_id2) throws SQLException {
         int hops = 0;
         ArrayList<Long> friends = new ArrayList<Long>(threeDegrees(user_id1, user_id2, hops));
-        System.out.println("Three Degrees of Separation\n\nPath:");
+        pp.displayBoxed("Three Degrees of Separation");
+        pp.displayUnderlined("Path: ");
 
-
-        int friend_count = friends.size();
-        if(friend_count > 0) {
-            for(int i = friend_count - 1; i > 0; i--) {
+        if(friends != null) {
+            int friend_count = friends.size();
+            for(int i = friend_count - 1; i >= 0; i--) {
                 if(i == 0) {
                     System.out.print("Target id: ");
                 } else if(i == friend_count) {
@@ -444,7 +445,7 @@ public class FaceSpace {
                 }
                 System.out.println(friends.get(i));
             }
-            System.out.println("Found path in " + (friend_count - 2) + " connections.");
+            System.out.println("\nFound path in " + (friend_count - 2) + " connections.");
         } else {
             System.out.println("No path exists with a maximum of 3 connections between ");
             System.out.println(user_id1 + " and " + user_id2);
@@ -492,10 +493,10 @@ public class FaceSpace {
             "(" +
             "SELECT sender_id AS usr_id, (num_sender + num_recip) AS num_usr_msgs FROM" +
                 "(" +
-                "SELECT sender_id, COUNT(sender_id) as num_sender FROM Messsages WHERE MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ? AND Messages.type = ? GROUP BY sender_id" +
+                "SELECT sender_id, COUNT(sender_id) as num_sender FROM Messages WHERE MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ? AND Messages.type = ? GROUP BY sender_id" +
                 "INNER JOIN " +
                 "(" +
-                "SELECT recip_id, COUNT(recip_id) as num_recip FROM Messsages WHERE MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ? AND Messages.type = ? GROUP BY recip_id" +
+                "SELECT recip_id, COUNT(recip_id) as num_recip FROM Messages WHERE MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ? AND Messages.type = ? GROUP BY recip_id" +
                 ")" +
                 "ON sender_id = recip_id" +
             ")" +
