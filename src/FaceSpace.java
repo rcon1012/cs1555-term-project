@@ -501,12 +501,12 @@ public class FaceSpace {
     // Recursively searches through friends of friends until the target friend is found.
     // Returns List of user_ids in reverse order from target to subject
     private List<Long> threeDegrees(long subject_id, long target_id, int hops) throws SQLException {
+        hops++;
         if(hops > 3) {
             return null;
         } else if(subject_id == target_id) {
             return Arrays.asList(target_id);
         } else {
-            hops++;
             ArrayList<Long> friend_ids = new ArrayList<Long>(getEstablishedFriends(subject_id));
             for(int i=0; i < friend_ids.size(); i++) {
                 long friend_id = friend_ids.get(i);
