@@ -1,4 +1,3 @@
-import com.sun.javaws.exceptions.InvalidArgumentException;
 
 public enum MessageType {
     SINGLE_USER(1, "Single User"),

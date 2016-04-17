@@ -1,5 +1,3 @@
-import com.sun.javaws.exceptions.InvalidArgumentException;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -15,7 +13,7 @@ public class Message {
 
     public Message() {}
 
-    public Message(long id, String subject, long senderId, long recipientId, Timestamp timeSent, String text, MessageType type) throws InvalidArgumentException {
+    public Message(long id, String subject, long senderId, long recipientId, Timestamp timeSent, String text, MessageType type) {
         setId(id);
         setSubject(subject);
         setSenderId(senderId);
@@ -25,7 +23,7 @@ public class Message {
         setType(type);
     }
 
-    public Message(ResultSet resultSet) throws SQLException, InvalidArgumentException {
+    public Message(ResultSet resultSet) throws SQLException {
         this(ResultSetWrapper.getLong(resultSet, 1),
              ResultSetWrapper.getNullableString(resultSet, 2),
              ResultSetWrapper.getLong(resultSet, 3),
@@ -71,9 +69,8 @@ public class Message {
         return timeSent;
     }
 
-    public void setTimeSent(Timestamp timeSent) throws InvalidArgumentException {
+    public void setTimeSent(Timestamp timeSent) {
         if(timeSent == null) {
-            throw new InvalidArgumentException(new String[]{"Constraint time_sent NOT NULL violated"});
         }
         this.timeSent = timeSent;
     }

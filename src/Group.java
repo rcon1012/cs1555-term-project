@@ -1,5 +1,3 @@
-import com.sun.javaws.exceptions.InvalidArgumentException;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -11,14 +9,14 @@ public class Group {
 
     public Group() {}
 
-    public Group(long groupId, String name, String description, int capacity) throws InvalidArgumentException {
+    public Group(long groupId, String name, String description, int capacity) {
         setGroupId(groupId);
         setName(name);
         setDescription(description);
         setCapacity(capacity);
     }
 
-    public Group(ResultSet resultSet) throws SQLException, InvalidArgumentException {
+    public Group(ResultSet resultSet) throws SQLException {
         this(ResultSetWrapper.getLong(resultSet, 1),
              ResultSetWrapper.getNullableString(resultSet, 2),
              ResultSetWrapper.getNullableString(resultSet, 3),
@@ -37,9 +35,8 @@ public class Group {
         return name;
     }
 
-    public void setName(String name) throws InvalidArgumentException {
+    public void setName(String name) {
         if(name == null) {
-            throw new InvalidArgumentException(new String[]{"Constraint name NOT NULL violated"});
         }
         this.name = name;
     }

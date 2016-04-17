@@ -1,6 +1,10 @@
-import com.sun.javaws.exceptions.InvalidArgumentException;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,8 +58,6 @@ public class FaceSpace {
                 runChoice(choice);
             } catch (SQLException e) {
                 System.out.println("Error running the sample queries. Machine Error: " + e.toString());
-            } catch (InvalidArgumentException e) {
-                e.printStackTrace();
             } finally {
                 try {
                     if(statement != null) { statement.close(); }
@@ -75,7 +77,7 @@ public class FaceSpace {
         }
     }
 
-    private void runChoice(int choice) throws SQLException, InvalidArgumentException {
+    private void runChoice(int choice) throws SQLException {
         switch (choice) {
             case 1:
                 createUser(readProfile());
@@ -146,11 +148,11 @@ public class FaceSpace {
         return new Profile(readLong("User ID: "), readString("First Name: "), readString("Last Name: "), readString("Email: "), readTimestamp("Date of Birth: "), currentTimestamp());
     }
 
-    private Group readGroup() throws InvalidArgumentException {
+    private Group readGroup() {
         return new Group(-1, readString("Name: "), readString("Description: "), readInt("Capacity: "));
     }
 
-    private Message readMessage() throws InvalidArgumentException {
+    private Message readMessage() {
         return new Message(-1, readString("Subject: "), readLong("Sender ID: "), readLong("Recipient ID: "), currentTimestamp(), readString("Text: "), MessageType.SINGLE_USER);
     }
 
@@ -315,7 +317,7 @@ public class FaceSpace {
         System.out.println("\nNOTE: No more users found.\n");
     }
 
-    private void createGroup(Group group) throws SQLException, InvalidArgumentException {
+    private void createGroup(Group group) throws SQLException {
         query = "INSERT INTO Groups(name, description, capacity) VALUES(?, ?, ?)";
         prepStatement = connection.prepareStatement(query);
 
@@ -377,11 +379,11 @@ public class FaceSpace {
         System.out.println(message);
     }
 
-    private void displayMessages(long user_id) throws SQLException, InvalidArgumentException {
+    private void displayMessages(long user_id) throws SQLException {
         displayMessages(user_id, false);
     }
 
-    private Profile getProfileFromId(long user_id) throws SQLException, InvalidArgumentException {
+    private Profile getProfileFromId(long user_id) throws SQLException {
         query = "SELECT * FROM Profiles WHERE user_id = ?";
         prepStatement = connection.prepareStatement(query);
         prepStatement.setLong(1, user_id);
@@ -391,7 +393,7 @@ public class FaceSpace {
         return (new Profile(resultSet));
     }
 
-    private void displayMessages(long user_id, boolean new_only) throws SQLException, InvalidArgumentException {
+    private void displayMessages(long user_id, boolean new_only) throws SQLException {
         // TODO: format output
         String motd;
         Profile subject = getProfileFromId(user_id);
@@ -451,7 +453,7 @@ public class FaceSpace {
         }
     }
 
-    private void displayNewMessages(long user_id) throws SQLException, InvalidArgumentException {
+    private void displayNewMessages(long user_id) throws SQLException {
         displayMessages(user_id, true);
     }
 
@@ -473,7 +475,7 @@ public class FaceSpace {
 
     private void threeDegrees(long user_id1, long user_id2) throws SQLException {
         int hops = 0;
-        ArrayList<Long> friends = new ArrayList<Long>(threeDegrees(user_id1, user_id2, hops));
+        ArrayList<Long> friends = (ArrayList<Long>) threeDegrees(user_id1, user_id2, hops);
         pp.displayBoxed("Three Degrees of Separation");
         pp.displayUnderlined("Path: ");
 
@@ -556,8 +558,15 @@ public class FaceSpace {
         ") " +
         "ON user_id = usr_id";
             
-            
-        resultSet = query.executeQuery();
+        prepStatement = connection.prepareStatement(query);
+        prepStatement.setInt(1, numMonths);
+        prepStatement.setInt(2, 1);
+        prepStatement.setInt(3, numMonths);
+        prepStatement.setInt(4, 1);
+        prepStatement.setInt(5, 2);
+        prepStatement.setInt(6, numMonths);
+        
+        resultSet = prepStatement.executeQuery();
         while(resultSet.next()) {
             Profile profile = new Profile(ResultSetWrapper.getLong(resultSet, 1),
                 ResultSetWrapper.getNullableString(resultSet, 2),
@@ -565,6 +574,7 @@ public class FaceSpace {
                 ResultSetWrapper.getNullableString(resultSet, 4),
                 ResultSetWrapper.getNullableTimestamp(resultSet, 5),
                 ResultSetWrapper.getNullableTimestamp(resultSet, 6));
+            System.out.println(profile.toString());
             System.out.print(resultSet);
             System.out.println("NUMBER OF MESSAGES:\t" + ResultSetWrapper.getInt(resultSet, 7) + "\n");
         }
