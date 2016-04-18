@@ -145,7 +145,7 @@ public class FaceSpace {
     }
 
     private Profile readProfile() {
-        return new Profile(readLong("User ID: "), readString("First Name: "), readString("Last Name: "), readString("Email: "), readTimestamp("Date of Birth: "), currentTimestamp());
+        return new Profile(-1, readString("First Name: "), readString("Last Name: "), readString("Email: "), readTimestamp("Date of Birth: "), currentTimestamp());
     }
 
     private Group readGroup() {
@@ -213,7 +213,7 @@ public class FaceSpace {
         prepStatement.setString(3, profile.getEmail());
         prepStatement.setTimestamp(4, new java.sql.Timestamp(profile.getDob().getTime()));
         // last_on set to profile creation
-        prepStatement.setTimestamp(5, new java.sql.Timestamp((new java.util.Date()).getTime()));
+        prepStatement.setTimestamp(5, currentTimestamp());
 
         // execute query
         prepStatement.executeUpdate();
@@ -255,7 +255,7 @@ public class FaceSpace {
         query = "UPDATE Friends SET established = ? WHERE (friend1_id = ? AND friend2_id = ?) OR (friend1_id = ? AND friend2_id = ?)";
         prepStatement = connection.prepareStatement(query);
         
-        prepStatement.setTimestamp(1, new java.sql.Timestamp((new java.util.Date()).getTime()));
+        prepStatement.setTimestamp(1, currentTimestamp());
         prepStatement.setLong(2, friend_id1);
         prepStatement.setLong(3, friend_id2);
         prepStatement.setLong(4, friend_id2);
@@ -388,7 +388,6 @@ public class FaceSpace {
         prepStatement = connection.prepareStatement(query);
         prepStatement.setLong(1, user_id);
         resultSet = prepStatement.executeQuery();
-
         resultSet.next();
         return (new Profile(resultSet));
     }
@@ -535,29 +534,30 @@ public class FaceSpace {
         */
         query = "SELECT user_id, fname, lname, dob, email, dob, last_on, num_msgs FROM Profiles" +
         " INNER JOIN " +
-        "("+
+        " ( "+
         "SELECT usr_id, (num_usr_msgs + num_group_msgs) AS num_msgs FROM " +
-            "(" +
+            " ( " +
             "SELECT sender_id AS usr_id, (num_sender + num_recip) AS num_usr_msgs FROM" +
-                "(" +
-                "SELECT sender_id, COUNT(sender_id) as num_sender FROM Messages WHERE MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ? AND Messages.type = ? GROUP BY sender_id" +
-                "INNER JOIN " +
-                "(" +
+            " ( " +
+                "( SELECT sender_id, COUNT(sender_id) as num_sender FROM Messages WHERE MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ? AND Messages.type = ? GROUP BY sender_id )" +
+                " FULL OUTER JOIN " +
+                " ( " +
                 "SELECT recip_id, COUNT(recip_id) as num_recip FROM Messages WHERE MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ? AND Messages.type = ? GROUP BY recip_id" +
-                ")" +
-                "ON sender_id = recip_id" +
-            ")" +
-            " INNER JOIN " +
-            "(" +
+                " ) " +
+                " ON sender_id = recip_id " +
+            " ) " +
+            " ) " +
+            " FULL OUTER JOIN " +
+            "( " +
                 "SELECT user_id, COUNT(*) AS num_group_msgs FROM" +
                 "(" +
                 "SELECT * FROM Messages INNER JOIN Members ON Messages.recip_id = Members.group_id WHERE Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?" +
-                ") GROUP BY user_id" +
-            ")" +
-        " ON usr_id = user_id" +
-        ") " +
-        "ON user_id = usr_id";
-            
+                " ) GROUP BY user_id" +
+            " ) " +
+        " ON usr_id = user_id " +
+        " ) " +
+        " ON Profiles.user_id = usr_id ";
+                   
         prepStatement = connection.prepareStatement(query);
         prepStatement.setInt(1, numMonths);
         prepStatement.setInt(2, 1);
@@ -565,7 +565,7 @@ public class FaceSpace {
         prepStatement.setInt(4, 1);
         prepStatement.setInt(5, 2);
         prepStatement.setInt(6, numMonths);
-        
+
         resultSet = prepStatement.executeQuery();
         while(resultSet.next()) {
             Profile profile = new Profile(ResultSetWrapper.getLong(resultSet, 1),
@@ -574,8 +574,7 @@ public class FaceSpace {
                 ResultSetWrapper.getNullableString(resultSet, 4),
                 ResultSetWrapper.getNullableTimestamp(resultSet, 5),
                 ResultSetWrapper.getNullableTimestamp(resultSet, 6));
-            System.out.println(profile.toString());
-            System.out.print(resultSet);
+            System.out.print(profile.toString());
             System.out.println("NUMBER OF MESSAGES:\t" + ResultSetWrapper.getInt(resultSet, 7) + "\n");
         }
     }
