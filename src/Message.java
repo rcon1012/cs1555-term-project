@@ -95,10 +95,6 @@ public class Message {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("MESSAGE ID:\t");
-        sb.append(getId());
-        sb.append("\n");
-
         sb.append("SUBJECT:\t");
         sb.append(getSubject());
         sb.append("\n");

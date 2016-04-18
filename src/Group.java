@@ -61,10 +61,6 @@ public class Group {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("GROUP ID:\t");
-        sb.append(getGroupId());
-        sb.append("\n");
-
         sb.append("NAME:\t");
         sb.append(getName());
         sb.append("\n");
