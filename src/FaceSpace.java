@@ -532,24 +532,21 @@ public class FaceSpace {
         count to yield the total number of messages sent or received by a user in the last k months
         via individual messaging or group messaging.
         */
-        query = "SELECT user_id, fname, lname, dob, email, dob, last_on, num_msgs FROM Profiles INNER JOIN " +
-        "( SELECT usr_id, (NVL(num_usr_msgs, 0) + NVL(num_group_msgs, 0)) AS num_msgs FROM  ( " +
-        		"(SELECT Me.sender_id AS usr_id, (COUNT(*) + (SELECT COUNT(*) FROM Messages M WHERE M.recip_id = Me.sender_id AND M.type = ? AND MONTHS_BETWEEN(SYSDATE, M.time_sent) <= ?)) AS num_usr_msgs FROM Messages Me WHERE Me.type = ? AND MONTHS_BETWEEN(SYSDATE, Me.time_sent) <= ? GROUP BY Me.sender_id) " +
-        		" FULL OUTER JOIN " +
-        		" (SELECT Members.user_id, COUNT(*) AS num_group_msgs FROM Messages INNER JOIN Members ON Messages.recip_id = Members.group_id WHERE Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ? GROUP BY Members.user_id) " +
-        		" ON usr_id = user_id " +
-        	" ) ORDER BY num_msgs DESC " + 
-        " ) ON Profiles.user_id = usr_id " +
-        " WHERE ROWNUM <= ?";
+        query = "SELECT * FROM (" +
+        		"SELECT user_id, fname, lname, dob, email, dob, last_on, " +
+        		"((SELECT COUNT(*) FROM Messages WHERE Messages.sender_id = P.user_id AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?)" +
+        		" + (SELECT COUNT(*) FROM Messages WHERE Messages.recip_id = P.user_id AND Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?)" +
+        		" + (SELECT COUNT(*) FROM Messages INNER JOIN Members ON Messages.recip_id = Members.group_id WHERE Members.user_id = P.user_id AND Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?))" +
+        		" AS num_msgs FROM Profiles P ORDER BY num_msgs DESC " +
+        		") WHERE ROWNUM <= ?";
                    
         prepStatement = connection.prepareStatement(query);
-        prepStatement.setInt(1, 1);
-        prepStatement.setInt(2, numMonths);
-        prepStatement.setInt(3, 1);
-        prepStatement.setInt(4, numMonths);
-        prepStatement.setInt(5, 2);
-        prepStatement.setInt(6, numMonths);
-        prepStatement.setInt(7, numUsers);
+        prepStatement.setInt(1, numMonths);
+        prepStatement.setInt(2, 1);
+        prepStatement.setInt(3, numMonths);
+        prepStatement.setInt(4, 2);
+        prepStatement.setInt(5, numMonths);
+        prepStatement.setInt(6, numUsers);
 
         resultSet = prepStatement.executeQuery();
         while(resultSet.next()) {
