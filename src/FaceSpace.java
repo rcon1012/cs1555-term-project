@@ -573,8 +573,7 @@ public class FaceSpace {
 			createUser(profile);
 		}
 		
-		int cont = readInt("Press 1 to continue");
-		if(cont == 1)
+		readString("Press any key to continue");
 		
 		// display users
 		query = "SELECT * FROM Profiles";
@@ -585,6 +584,8 @@ public class FaceSpace {
 			System.out.println(p.toString());
 		}
 		
+		readString("Press any key to continue");
+
 		// test initiate friendship
 		int friend1 = new int[3000];
 		int friend2 = new int[3000];
@@ -598,6 +599,9 @@ public class FaceSpace {
 			System.out.println("Attempt initiating friendship between " + friendid_1 + " and " + friendid_2);
 			initiateFriendship(friendid_1, friendid_2);
 		}
+		
+		readString("Press any key to continue");
+		
 		// display friends
 		query = "SELECT * FROM Friends";
         prepStatement = connection.prepareStatement(query);
@@ -606,6 +610,8 @@ public class FaceSpace {
             Friendship f = new Friendship(resultSet);
 			System.out.println(f.toString());
 		}
+		
+		readString("Press any key to continue");
 		
 		// test establish friendship
 		System.out.println("Attempt establishing 3000 friendships...");
@@ -614,6 +620,8 @@ public class FaceSpace {
 			establishFriendship(friend1[i], friend2[i]);
 		}
 		
+		readString("Press any key to continue");
+		
 		// display friends
 		query = "SELECT * FROM Friends";
         prepStatement = connection.prepareStatement(query);
@@ -623,12 +631,16 @@ public class FaceSpace {
 			System.out.println(f.toString());
 		}
 		
+		readString("Press any key to continue");
+		
 		// create groups
 		for(int i = 0; i < 3000; i++) {
 			Group group = new Group(-1, "group " + i, "description for group " + i, rand.nextInt(100) + 1);
 			System.out.println(group.toString);
 			createGroup(group);
 		}
+		
+		readString("Press any key to continue");
 		
 		// display groups
 		query = "SELECT * FROM Groups";
@@ -638,5 +650,28 @@ public class FaceSpace {
             Group g = new Group(resultSet);
 			System.out.println(g.toString());
 		}
+		
+		readString("Press any key to continue");
+		
+		// add to group
+		for(int i = 0; i < 3000; i++) {
+			int groupid = rand.nextInt(3000) + 1;
+			int userid = rand.nextInt(3000) + 1;
+			System.out.println("Attempt to add user " + userid + " to group " + groupid);
+			addToGroup(groupid, userid);
+		}
+		
+		readString("Press any key to continue");
+
+		// display members
+		query = "SELECT * FROM Members";
+        prepStatement = connection.prepareStatement(query);
+        resultSet = prepStatement.executeQuery();
+        while(resultSet.next()) {
+            Member m = new Member(resultSet);
+			System.out.println(m.toString());
+		}
+		
+		readString("Press any key to continue");
 	}
 }
