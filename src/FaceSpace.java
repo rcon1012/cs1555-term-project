@@ -121,6 +121,9 @@ public class FaceSpace {
             case 14:
                 dropUser(readLong("User ID: "));
                 break;
+			case 15:
+				stressTest();
+				break;
             default:
                 System.out.println("No choice selected. Choices:");
                 System.out.println(
@@ -139,6 +142,7 @@ public class FaceSpace {
                         "12)\tThree Degrees\n" +
                         "13)\tTop Messages\n" +
                         "14)\tDrop User\n" +
+						"15)\tStress Test\n" +
                         "-1)\tHelp\n");
                 break;
         }
@@ -522,15 +526,11 @@ public class FaceSpace {
     }
 
     private void topMessagers(int numUsers, int numMonths) throws SQLException {
-        //TO-DO: only outlining the logic
         /*
-        For the last k most recent months:
-        Join the number of messages sent by a user with the number of messages received
-        by a user and sum their counts resulting in the number of messages sent or received by a user
-        to or from another user.
-        Join this result with the number of messages received by a user's group and sum this count with the previous
-        count to yield the total number of messages sent or received by a user in the last k months
-        via individual messaging or group messaging.
+        For each profile (user), count the number of messages they sent, the number of messages the received
+        from a single user, and the amount of messages they received through membership in a group,
+        then sum these three quantities to get the total number of messages. Limit these results
+        to the number of months <= numMonths and to the top numUsers
         */
         query = "SELECT * FROM (" +
         		"SELECT user_id, fname, lname, dob, email, dob, last_on, " +
@@ -570,4 +570,88 @@ public class FaceSpace {
 
         System.out.println("SUCCESS: User is no longer present in database.\n");
     }
+	
+	private void stressTest() throws SQLException {
+		// test create user
+		System.out.println("Creating 3000 user profiles...");
+		for(int i = 0; i < 3000; i++) {
+			long offset = Timestamp.valueOf("1950-01-01 00:00:00").getTime();
+			long end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
+			long diff = end - offset + 1;
+			Timestamp dob = new Timestamp(offset + (long)(Math.random() * diff));
+			offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+			end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+			diff = end - offset + 1;
+			Timestamp lastOn = new Timestamp(offset + (long)(Math.random() * diff));
+			Profile profile = new Profile(-1, "fname " + i, "lname " + i, "email" + i + "@gmail.com", dob, lastOn);
+			System.out.println(profile.toString());
+			createUser(profile);
+		}
+		
+		int cont = readInt("Press 1 to continue");
+		if(cont == 1)
+		
+		// display users
+		query = "SELECT * FROM Profiles";
+        prepStatement = connection.prepareStatement(query);
+        resultSet = prepStatement.executeQuery();
+        while(resultSet.next()) {
+            Profile p = new Profile(resultSet);
+			System.out.println(p.toString());
+		}
+		
+		// test initiate friendship
+		int friend1 = new int[3000];
+		int friend2 = new int[3000];
+		System.out.println("Attempt initiating 3000 random friendships...");
+		Random rand = new Random();
+		for(int i = 0; i < 3000; i++) {
+			int friendid_1 = rand.nextInt(3000) + 1;
+			int friendid_2 = rand.nextInt(3000) + 1;
+			friend1[i] = friendid_1;
+			friend2[i] = friendid_2;
+			System.out.println("Attempt initiating friendship between " + friendid_1 + " and " + friendid_2);
+			initiateFriendship(friendid_1, friendid_2);
+		}
+		// display friends
+		query = "SELECT * FROM Friends";
+        prepStatement = connection.prepareStatement(query);
+        resultSet = prepStatement.executeQuery();
+        while(resultSet.next()) {
+            Friendship f = new Friendship(resultSet);
+			System.out.println(f.toString());
+		}
+		
+		// test establish friendship
+		System.out.println("Attempt establishing 3000 friendships...");
+		for(int i = 0; i < 3000; i++) {
+			System.out.println("Attempt establishing friendship between " + friend1[i] + " and " + friend2[i]);
+			establishFriendship(friend1[i], friend2[i]);
+		}
+		
+		// display friends
+		query = "SELECT * FROM Friends";
+        prepStatement = connection.prepareStatement(query);
+        resultSet = prepStatement.executeQuery();
+        while(resultSet.next()) {
+            Friendship f = new Friendship(resultSet);
+			System.out.println(f.toString());
+		}
+		
+		// create groups
+		for(int i = 0; i < 3000; i++) {
+			Group group = new Group(-1, "group " + i, "description for group " + i, rand.nextInt(100) + 1);
+			System.out.println(group.toString);
+			createGroup(group);
+		}
+		
+		// display groups
+		query = "SELECT * FROM Groups";
+        prepStatement = connection.prepareStatement(query);
+        resultSet = prepStatement.executeQuery();
+        while(resultSet.next()) {
+            Group g = new Group(resultSet);
+			System.out.println(g.toString());
+		}
+	}
 }
