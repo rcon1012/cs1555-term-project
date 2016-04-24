@@ -82,10 +82,6 @@ public class Profile {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("USER ID:\t");
-        sb.append(getUserId());
-        sb.append("\n");
-
         sb.append("FIRST NAME:\t");
         sb.append(getFName());
         sb.append("\n");

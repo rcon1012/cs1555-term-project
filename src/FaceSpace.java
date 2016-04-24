@@ -1,3 +1,5 @@
+import oracle.sql.NUMBER;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -6,10 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class FaceSpace {
     private static final Scanner consoleScanner = new Scanner(System.in);
@@ -410,9 +409,9 @@ public class FaceSpace {
 
         // display messages from a single user
         if(new_only){
-            query = "SELECT * FROM Messages WHERE recip_id = ? AND type = ? AND time_sent > ? INNER JOIN Profiles ON Messages.sender_id = Profiles.user_id";
+            query = "SELECT * FROM Messages INNER JOIN Profiles ON Messages.sender_id = Profiles.user_id WHERE recip_id = ? AND type = ? AND time_sent > ?";
         } else {
-            query = "SELECT * FROM Messages WHERE recip_id = ? AND type = ? INNER JOIN Profiles ON Messages.sender_id = Profiles.user_id";
+            query = "SELECT * FROM Messages INNER JOIN Profiles ON Messages.sender_id = Profiles.user_id WHERE recip_id = ? AND type = ?";
         }
         prepStatement = connection.prepareStatement(query);
 
@@ -477,52 +476,46 @@ public class FaceSpace {
     }
 
     private void threeDegrees(long user_id1, long user_id2) throws SQLException {
-        int hops = 0;
-        ArrayList<Long> friends = (ArrayList<Long>) threeDegrees(user_id1, user_id2, hops);
+        Stack<Long> path = new Stack<Long>();
+        boolean pathExists = threeDegrees(user_id1, user_id2, path);
         pp.displayBoxed("Three Degrees of Separation");
         pp.displayUnderlined("Path: ");
 
-        if(friends != null) {
-            int friend_count = friends.size();
-            for(int i = friend_count - 1; i >= 0; i--) {
-                if(i == 0) {
-                    System.out.print("Target id: ");
-                } else if(i == friend_count) {
-                    System.out.print("Start id: ");
-                }
-                System.out.println(friends.get(i));
+        if(pathExists) {
+            int friend_count = path.size();
+            System.out.println("\nFound path in " + (friend_count - 1) + " connections.");
+            for(Long fid : path) {
+                System.out.println(fid);
             }
-            System.out.println("\nFound path in " + (friend_count - 2) + " connections.");
         } else {
             System.out.println("No path exists with a maximum of 3 connections between ");
             System.out.println(user_id1 + " and " + user_id2);
-        }
-
-        for(int i=0; i < friends.size(); i++) {
-            System.out.println(friends.get(i));
         }
     }
 
     // Recursively searches through friends of friends until the target friend is found.
     // Returns List of user_ids in reverse order from target to subject
-    private List<Long> threeDegrees(long subject_id, long target_id, int hops) throws SQLException {
-        hops++;
-        if(hops > 3) {
-            return null;
+    private boolean threeDegrees(long subject_id, long target_id, Stack<Long> path) throws SQLException {
+        if(path.size() > 3) {
+            return false;
         } else if(subject_id == target_id) {
-            return Arrays.asList(target_id);
+            path.push(target_id);
+            return true;
         } else {
             ArrayList<Long> friend_ids = new ArrayList<Long>(getEstablishedFriends(subject_id));
             for(int i=0; i < friend_ids.size(); i++) {
-                long friend_id = friend_ids.get(i);
-                List<Long> path = new ArrayList<Long>(threeDegrees(friend_id, target_id, hops));
-                if(path != null) {
-                    path.add(subject_id);
-                    return path;
+                if(path.contains(friend_ids.get(i))) {
+                    continue;
                 }
+                long friend_id = friend_ids.get(i);
+                path.push(subject_id);
+                if(threeDegrees(friend_id, target_id, path)) {
+                    return true;
+                }
+                path.pop();
             }
         }
-        return null;
+        return false;
     }
 
     private void topMessagers(int numUsers, int numMonths) throws SQLException {
@@ -532,30 +525,22 @@ public class FaceSpace {
         then sum these three quantities to get the total number of messages. Limit these results
         to the number of months <= numMonths and to the top numUsers
         */
-        query = "SELECT * FROM (" +
-        		"SELECT user_id, fname, lname, dob, email, dob, last_on, " +
+        query = "SELECT user_id, fname, lname, email, dob, last_on, " +
         		"((SELECT COUNT(*) FROM Messages WHERE Messages.sender_id = P.user_id AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?)" +
         		" + (SELECT COUNT(*) FROM Messages WHERE Messages.recip_id = P.user_id AND Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?)" +
         		" + (SELECT COUNT(*) FROM Messages INNER JOIN Members ON Messages.recip_id = Members.group_id WHERE Members.user_id = P.user_id AND Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?))" +
-        		" AS num_msgs FROM Profiles P ORDER BY num_msgs DESC " +
-        		") WHERE ROWNUM <= ?";
-                   
+        		" AS num_msgs FROM Profiles P ORDER BY num_msgs DESC ";
+
         prepStatement = connection.prepareStatement(query);
         prepStatement.setInt(1, numMonths);
         prepStatement.setInt(2, 1);
         prepStatement.setInt(3, numMonths);
         prepStatement.setInt(4, 2);
         prepStatement.setInt(5, numMonths);
-        prepStatement.setInt(6, numUsers);
 
         resultSet = prepStatement.executeQuery();
-        while(resultSet.next()) {
-            Profile profile = new Profile(ResultSetWrapper.getLong(resultSet, 1),
-                ResultSetWrapper.getNullableString(resultSet, 2),
-                ResultSetWrapper.getNullableString(resultSet, 3),
-                ResultSetWrapper.getNullableString(resultSet, 4),
-                ResultSetWrapper.getNullableTimestamp(resultSet, 5),
-                ResultSetWrapper.getNullableTimestamp(resultSet, 6));
+        while(resultSet.next() && numUsers-- > 0) {
+            Profile profile = new Profile(resultSet);
             System.out.print(profile.toString());
             System.out.println("NUMBER OF MESSAGES:\t" + ResultSetWrapper.getInt(resultSet, 7) + "\n");
         }
