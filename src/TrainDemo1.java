@@ -395,8 +395,8 @@ public class TrainDemo1 {
 	   try blocks */
 
         String username, password;
-        username = "SYSTEM"; //This is your username in oracle
-        password = "password"; //This is your password in oracle
+        username = "rgc11"; //This is your username in oracle
+        password = "3628840"; //This is your password in oracle
 
         try{
             System.out.println("Registering DB..");

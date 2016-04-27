@@ -301,7 +301,6 @@ public class FaceSpace {
     }
 
     private void displayFriends(long user_id) throws SQLException {
-        // TODO: NOT DONE! Just example of how to read using ResultSet constructor
         ArrayList<Friend> friends = new ArrayList<Friend>(getFriends(user_id));
         pp.displayBoxed("Friends of id: " + user_id);
         for(int i = 0; i < friends.size(); i++) {
@@ -386,7 +385,6 @@ public class FaceSpace {
     }
 
     private void displayMessages(long user_id, boolean new_only) throws SQLException {
-        // TODO: format output
         String motd;
         Profile subject = getProfileFromId(user_id);
 
@@ -508,6 +506,12 @@ public class FaceSpace {
         return false;
     }
 
+    /**
+     * displays top numUsers who sent or received messsages in the past numMonths
+     * @param numUsers
+     * @param numMonths
+     * @throws SQLException
+     */
     private void topMessagers(int numUsers, int numMonths) throws SQLException {
         /*
         For each profile (user), count the number of messages they sent, the number of messages the received
@@ -548,6 +552,8 @@ public class FaceSpace {
 
 	private void stressTest() throws SQLException {
         final int insertions = 3000;    // number of new entries to be inserted to database
+        final int maxGroupCapacity = 20;	// max group capacity
+        final int topUsers = 10;	// number of top users for topMessagers
 
 		// test create user
 		System.out.println("Creating " + insertions + " user profiles...");
@@ -565,7 +571,8 @@ public class FaceSpace {
 			createUser(profile);
 		}
 
-		readString("Press any key to continue");
+		System.out.println(insertions + " user profiles created");
+		readString("Enter any key to display users");
 
 		// display users
 		query = "SELECT * FROM Profiles";
@@ -576,7 +583,7 @@ public class FaceSpace {
 			System.out.println(p.toString());
 		}
 
-		readString("Press any key to continue");
+		readString("Enter any key to stress test initiateFriendship");
 
 		// test initiate friendship
 		int friend1[] = new int[insertions];
@@ -592,7 +599,7 @@ public class FaceSpace {
 			initiateFriendship(friendid_1, friendid_2);
 		}
 
-		readString("Press any key to continue");
+		readString("Enter any key to display created friendships (likely less than " + insertions + " due to attempted initiation of existing friendship)");
 
 		// display friends
 		query = "SELECT * FROM Friends";
@@ -603,7 +610,7 @@ public class FaceSpace {
 			System.out.println(f.toString());
 		}
 
-		readString("Press any key to continue");
+		readString("Enter any key to stress test establishFriendship");
 
 		// test establish friendship
 		System.out.println("Attempt establishing " + insertions + " friendships...");
@@ -612,7 +619,7 @@ public class FaceSpace {
 			establishFriendship(friend1[i], friend2[i]);
 		}
 
-		readString("Press any key to continue");
+		readString("Enter any key to view established friends (will fail on the same instances that initiateFriendship did)");
 
 		// display friends
 		query = "SELECT * FROM Friends";
@@ -623,16 +630,16 @@ public class FaceSpace {
 			System.out.println(f.toString());
 		}
 
-		readString("Press any key to continue");
+		readString("Enter any key to stress test createGroup");
 
 		// create groups
 		for(int i = 0; i < insertions; i++) {
-			Group group = new Group(-1, "group " + i, "description for group " + i, rand.nextInt(insertions) + 1);
+			Group group = new Group(-1, "group " + i, "description for group " + i, rand.nextInt(maxGroupCapacity) + 1);
 			System.out.println(group.toString());
 			createGroup(group);
 		}
 
-		readString("Press any key to continue");
+		readString("Enter any key to view created groups");
 
 		// display groups
 		query = "SELECT * FROM Groups";
@@ -643,7 +650,7 @@ public class FaceSpace {
 			System.out.println(g.toString());
 		}
 
-		readString("Press any key to continue");
+		readString("Enter any key to stress test addToGroup");
 
 		// add to group
 		for(int i = 0; i < insertions; i++) {
@@ -653,7 +660,8 @@ public class FaceSpace {
 			addToGroup(groupid, userid);
 		}
 
-		readString("Press any key to continue");
+		readString("Enter any key to view group members (addToGroup will fail in the case of a user already being a member of the group " +
+		"or in the case that the max capacity has been reached)");
 
 		// display members
 		query = "SELECT * FROM Members";
@@ -664,6 +672,186 @@ public class FaceSpace {
 			System.out.println(m.toString());
 		}
 
-		readString("Press any key to continue");
+		readString("Enter any key to stressTest sendMessageToUser");
+		
+		for(int i = 0; i < insertions; i++) {
+			long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+			long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+			long diff = end - offset + 1;
+			Timestamp timesent = new Timestamp(offset + (long)(Math.random() * diff));
+			Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(1));
+			sendMessageToUser(message);
+			System.out.println(message);
+		}
+		
+		readString("Enter any key to view sent messages to users");
+		
+		// display messages to users
+		query = "SELECT * FROM Messages WHERE type = 1";
+        prepStatement = connection.prepareStatement(query);
+        resultSet = prepStatement.executeQuery();
+        while(resultSet.next()) {
+            Message m = new Message(resultSet);
+			System.out.println(m.toString());
+		}
+        
+		readString("Enter any key to stressTest sendMessageToGroup");
+		
+		for(int i = 0; i < insertions; i++) {
+			long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+			long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+			long diff = end - offset + 1;
+			Timestamp timesent = new Timestamp(offset + (long)(Math.random() * diff));
+			Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(2));
+			sendMessageToGroup(message);
+			System.out.println(message);
+		}
+		
+		readString("Enter any key to view sent messages to groups");
+		
+		// display messages to groups
+		query = "SELECT * FROM Messages WHERE type = 2";
+        prepStatement = connection.prepareStatement(query);
+        resultSet = prepStatement.executeQuery();
+        while(resultSet.next()) {
+            Message m = new Message(resultSet);
+			System.out.println(m.toString());
+		}
+        
+        readString("Enter any key to stress test displayMessages");
+        
+        // displayMessages
+        for(int i = 1; i <= insertions; i++) {
+        	displayMessages(i);
+        }
+        
+        readString("Enter any key to stress test displayNewMessages (should be the same output as displayMessages " +
+        "since all messages were sent after the user's last login (profile creation in this case)");
+        
+        // displayMessages
+        for(int i = 1; i <= insertions; i++) {
+        	displayNewMessages(i);
+        }
+        
+        readString("Enter any key to stress test searchForUser (matches on first name, last name, and email) "
+        		+ " \nSearching for each user by first name in order by id ascending.");
+        
+        // searchForUser
+        for(int i = 1; i <= insertions; i++) {
+        	searchForUser("fname " + i);
+        }
+        
+        readString("Enter any key to stress test threeDegrees" +
+        "\nWill first add a user with id " + insertions+1 + " and a user with id " + insertions+2 +
+        "\n" + insertions+1 + " will initiate a friendship with user " + insertions + " and user " +
+        insertions+2 + "." +
+        "\n threeDegrees will then be invoked to find a path between user " + insertions + " and " +
+        "user " + insertions+2);
+        
+        // threeDegrees
+        // create user insertions+1
+        long offset = Timestamp.valueOf("1950-01-01 00:00:00").getTime();
+		long end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
+		long diff = end - offset + 1;
+		Timestamp dob = new Timestamp(offset + (long)(Math.random() * diff));
+		offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+		end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+		diff = end - offset + 1;
+		Timestamp lastOn = new Timestamp(offset + (long)(Math.random() * diff));
+        createUser(new Profile(-1, "fname " + insertions+1, "lname " + insertions+1, "email" + insertions+1 + "@gmail.com", dob, lastOn));
+        // create user insertions + 2
+        offset = Timestamp.valueOf("1950-01-01 00:00:00").getTime();
+		end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
+		diff = end - offset + 1;
+		dob = new Timestamp(offset + (long)(Math.random() * diff));
+		offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+		end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+		diff = end - offset + 1;
+		lastOn = new Timestamp(offset + (long)(Math.random() * diff));
+        createUser(new Profile(-1, "fname " + insertions+2, "lname " + insertions+2, "email" + insertions+2 + "@gmail.com", dob, lastOn));
+        // initiate friendship between insertions+1 and insertions
+        initiateFriendship(insertions+1, insertions);
+        // initiate friendship between insertions+1 and insertions+2
+        initiateFriendship(insertions+1, insertions+2);
+        // call threeDegrees on insertions and insertions+2
+        threeDegrees(insertions, insertions+2);
+        
+        readString("Enter any key to stressTest topMessagers." +
+        "\n Will first insert " + insertions + " messages to be sent by user " + insertions + " to random users." +
+        "\nThey will then be the top messager for the queries testing on the last year, last two years, and last three years");
+        
+        for(int i = 0; i < insertions; i++) {
+			offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+			end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+			diff = end - offset + 1;
+			Timestamp timesent = new Timestamp(offset + (long)(Math.random() * diff));
+			Message message = new Message(-1, "subject " + i, insertions, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(1));
+			sendMessageToUser(message);
+			System.out.println(message);
+        }
+        
+        System.out.println("Top 10 messagers for past year.");
+        topMessagers(topUsers, 12);
+        System.out.println("Top 10 messagers for past 2 years.");
+        topMessagers(topUsers, 24);
+        System.out.println("Top 10 messagers for past 3 years.");
+        topMessagers(topUsers, 36);
+        
+        readString("Enter any key to stress test dropUsers." +
+        "\nWill drop all users and then display all tables");
+        for(int i = 1; i <= insertions+2; i++) {
+        	dropUser(i);
+        }
+        
+        // display profiles
+        readString("Enter any key to display users");
+
+		query = "SELECT * FROM Profiles";
+        prepStatement = connection.prepareStatement(query);
+        resultSet = prepStatement.executeQuery();
+        while(resultSet.next()) {
+            Profile p = new Profile(resultSet);
+			System.out.println(p.toString());
+		}
+        // display friends
+        readString("Enter any key to display friendships");
+
+		query = "SELECT * FROM Friends";
+        prepStatement = connection.prepareStatement(query);
+        resultSet = prepStatement.executeQuery();
+        while(resultSet.next()) {
+            Friend f = new Friend(resultSet);
+			System.out.println(f.toString());
+		}
+        // display groups
+        readString("Enter any key to display groups");
+
+		query = "SELECT * FROM Groups";
+        prepStatement = connection.prepareStatement(query);
+        resultSet = prepStatement.executeQuery();
+        while(resultSet.next()) {
+            Group g = new Group(resultSet);
+			System.out.println(g.toString());
+		}
+        // display members
+        readString("Enter any key to display members");
+
+		query = "SELECT * FROM Members";
+        prepStatement = connection.prepareStatement(query);
+        resultSet = prepStatement.executeQuery();
+        while(resultSet.next()) {
+            Member m = new Member(resultSet);
+			System.out.println(m.toString());
+		}
+        // display messages
+        readString("Enter any key to display messages");
+
+		query = "SELECT * FROM Messages";
+        prepStatement = connection.prepareStatement(query);
+        resultSet = prepStatement.executeQuery();
+        while(resultSet.next()) {
+        	Message m = new Message(resultSet);
+			System.out.println(m.toString());
+		}
 	}
 }
