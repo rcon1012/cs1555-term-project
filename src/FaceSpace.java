@@ -7,8 +7,7 @@ public class FaceSpace {
     private static final PrettyPrinter pp = new PrettyPrinter();
     private static final String dfString = "yyyy-MM-dd";
     private static final java.text.SimpleDateFormat df = new java.text.SimpleDateFormat(dfString);
-    private static Connection connection;
-    private Statement statement;
+    private static SafeConnection connection;
     private PreparedStatement prepStatement;
     private ResultSet resultSet;
     private String query;
@@ -27,7 +26,7 @@ public class FaceSpace {
             DriverManager.registerDriver (new oracle.jdbc.driver.OracleDriver());
 
             System.out.println("Connect to DB..");
-            connection = DriverManager.getConnection(url, username, password);
+            connection = new SafeConnection(url, username, password);
 
             FaceSpace demo = new FaceSpace();
             demo.runExample();
@@ -51,7 +50,6 @@ public class FaceSpace {
                 System.out.println("Error running the sample queries. Machine Error: " + e.toString());
             } finally {
                 try {
-                    if(statement != null) { statement.close(); }
                     if(prepStatement != null) { prepStatement.close(); }
                 } catch (SQLException e) {
                     System.out.println("Cannot close statement. Machine error: " + e.toString());
@@ -249,13 +247,13 @@ public class FaceSpace {
     private void establishFriendship(long friend_id1, long friend_id2) throws SQLException {
         query = "UPDATE Friends SET established = ? WHERE (friend1_id = ? AND friend2_id = ?) OR (friend1_id = ? AND friend2_id = ?)";
         prepStatement = connection.prepareStatement(query);
-        
+
         prepStatement.setTimestamp(1, currentTimestamp());
         prepStatement.setLong(2, friend_id1);
         prepStatement.setLong(3, friend_id2);
         prepStatement.setLong(4, friend_id2);
         prepStatement.setLong(5, friend_id1);
-        
+
         prepStatement.executeUpdate();
     }
 
@@ -329,10 +327,10 @@ public class FaceSpace {
     private void addToGroup(long group_id, long user_id) throws SQLException {
         query = "INSERT INTO Members VALUES(?, ?)";
         prepStatement = connection.prepareStatement(query);
-        
+
         prepStatement.setLong(1, group_id);
         prepStatement.setLong(2, user_id);
-        
+
         prepStatement.executeUpdate();
     }
 
@@ -420,7 +418,7 @@ public class FaceSpace {
             Message message = new Message(resultSet);
             System.out.println(message);
         }
-        
+
         // display messages from a group the user belongs to
         if(new_only) {
             query = ("SELECT * FROM Messages WHERE recip_id = ? AND type = ? AND " +
@@ -430,14 +428,14 @@ public class FaceSpace {
                     "sender_id IN (SELECT group_id AS g_id FROM Members WHERE user_id = ?)");
         }
         prepStatement = connection.prepareStatement(query);
-        
+
         prepStatement.setLong(1, user_id);
         prepStatement.setInt(2, 2); // Prev: MessageType.WHOLE_GROUP, error
         prepStatement.setLong(3, user_id);
         if(new_only) {
             prepStatement.setTimestamp(4, subject.getLastOn());
         }
-        
+
         resultSet = prepStatement.executeQuery();
 
         pp.displayUnderlined("FROM: Group Conversations");
@@ -547,11 +545,13 @@ public class FaceSpace {
 
         System.out.println("SUCCESS: User is no longer present in database.\n");
     }
-	
+
 	private void stressTest() throws SQLException {
+        final int insertions = 3000;    // number of new entries to be inserted to database
+
 		// test create user
-		System.out.println("Creating 3000 user profiles...");
-		for(int i = 0; i < 3000; i++) {
+		System.out.println("Creating " + insertions + " user profiles...");
+		for(int i = 0; i < insertions; i++) {
 			long offset = Timestamp.valueOf("1950-01-01 00:00:00").getTime();
 			long end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
 			long diff = end - offset + 1;
@@ -564,9 +564,9 @@ public class FaceSpace {
 			System.out.println(profile.toString());
 			createUser(profile);
 		}
-		
+
 		readString("Press any key to continue");
-		
+
 		// display users
 		query = "SELECT * FROM Profiles";
         prepStatement = connection.prepareStatement(query);
@@ -575,25 +575,25 @@ public class FaceSpace {
             Profile p = new Profile(resultSet);
 			System.out.println(p.toString());
 		}
-		
+
 		readString("Press any key to continue");
 
 		// test initiate friendship
-		int friend1[] = new int[3000];
-		int friend2[] = new int[3000];
-		System.out.println("Attempt initiating 3000 random friendships...");
+		int friend1[] = new int[insertions];
+		int friend2[] = new int[insertions];
+		System.out.println("Attempt initiating" + insertions + "random friendships...");
 		Random rand = new Random();
-		for(int i = 0; i < 3000; i++) {
-			int friendid_1 = rand.nextInt(3000) + 1;
-			int friendid_2 = rand.nextInt(3000) + 1;
+		for(int i = 0; i < insertions; i++) {
+			int friendid_1 = rand.nextInt(insertions) + 1;
+			int friendid_2 = rand.nextInt(insertions) + 1;
 			friend1[i] = friendid_1;
 			friend2[i] = friendid_2;
 			System.out.println("Attempt initiating friendship between " + friendid_1 + " and " + friendid_2);
 			initiateFriendship(friendid_1, friendid_2);
 		}
-		
+
 		readString("Press any key to continue");
-		
+
 		// display friends
 		query = "SELECT * FROM Friends";
         prepStatement = connection.prepareStatement(query);
@@ -602,18 +602,18 @@ public class FaceSpace {
             Friend f = new Friend(resultSet);
 			System.out.println(f.toString());
 		}
-		
+
 		readString("Press any key to continue");
-		
+
 		// test establish friendship
-		System.out.println("Attempt establishing 3000 friendships...");
-		for(int i = 0; i < 3000; i++) {
+		System.out.println("Attempt establishing " + insertions + " friendships...");
+		for(int i = 0; i < insertions; i++) {
 			System.out.println("Attempt establishing friendship between " + friend1[i] + " and " + friend2[i]);
 			establishFriendship(friend1[i], friend2[i]);
 		}
-		
+
 		readString("Press any key to continue");
-		
+
 		// display friends
 		query = "SELECT * FROM Friends";
         prepStatement = connection.prepareStatement(query);
@@ -622,18 +622,18 @@ public class FaceSpace {
             Friend f = new Friend(resultSet);
 			System.out.println(f.toString());
 		}
-		
+
 		readString("Press any key to continue");
-		
+
 		// create groups
-		for(int i = 0; i < 3000; i++) {
-			Group group = new Group(-1, "group " + i, "description for group " + i, rand.nextInt(100) + 1);
+		for(int i = 0; i < insertions; i++) {
+			Group group = new Group(-1, "group " + i, "description for group " + i, rand.nextInt(insertions) + 1);
 			System.out.println(group.toString());
 			createGroup(group);
 		}
-		
+
 		readString("Press any key to continue");
-		
+
 		// display groups
 		query = "SELECT * FROM Groups";
         prepStatement = connection.prepareStatement(query);
@@ -642,17 +642,17 @@ public class FaceSpace {
             Group g = new Group(resultSet);
 			System.out.println(g.toString());
 		}
-		
+
 		readString("Press any key to continue");
-		
+
 		// add to group
-		for(int i = 0; i < 3000; i++) {
-			int groupid = rand.nextInt(3000) + 1;
-			int userid = rand.nextInt(3000) + 1;
+		for(int i = 0; i < insertions; i++) {
+			int groupid = rand.nextInt(insertions) + 1;
+			int userid = rand.nextInt(insertions) + 1;
 			System.out.println("Attempt to add user " + userid + " to group " + groupid);
 			addToGroup(groupid, userid);
 		}
-		
+
 		readString("Press any key to continue");
 
 		// display members
@@ -663,7 +663,7 @@ public class FaceSpace {
             Member m = new Member(resultSet);
 			System.out.println(m.toString());
 		}
-		
+
 		readString("Press any key to continue");
 	}
 }
