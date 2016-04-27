@@ -14,17 +14,25 @@ public class SafeConnection {
     }
 
     public PreparedStatement prepareStatement(String query) throws SQLException {
-        if(!queryToStatement.containsKey(query)) {
-            PreparedStatement statement = connection.prepareStatement(query);
+        PreparedStatement statement;
+        if(queryToStatement.containsKey(query)) {
+            statement = queryToStatement.get(query);
+            if(statement.isClosed()) {
+                queryToStatement.remove(query);
+                queryToStatement.put(query, connection.prepareStatement(query));
+            }
+        } else {
+            statement = connection.prepareStatement(query);
             queryToStatement.put(query, statement);
         }
+
         return queryToStatement.get(query);
     }
 
     public void close() throws SQLException {
-        connection.close();
         for(Map.Entry<String, PreparedStatement> entry : queryToStatement.entrySet()) {
             entry.getValue().close();
         }
+        connection.close();
     }
 }
