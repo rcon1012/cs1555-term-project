@@ -99,7 +99,7 @@ public class FaceSpace {
                 displayNewMessages(readLong("User ID: "));
                 break;
             case 11:
-                searchForUser(readString("Search Term: "));
+                searchForUserMultiplePrompt(readInt("Number of Search Terms: "));
                 break;
             case 12:
                 threeDegrees(readLong("User 1 ID: "), readLong("User ID: "));
@@ -449,20 +449,29 @@ public class FaceSpace {
         displayMessages(user_id, true);
     }
 
-    private void searchForUser(String searchTerm) throws SQLException {
+    private void searchForUserMultiplePrompt(int prompts) throws SQLException {
+        Collection<String> searchTerms = new ArrayList<String>();
+        for(int i = 0; i < prompts; i++) {
+            searchTerms.add(readString("Search Term: "));
+        }
+        searchForUser(searchTerms);
+    }
+
+    private void searchForUser(Iterable<String> searchTerms) throws SQLException {
         query = "SELECT * FROM Profiles WHERE fname=? OR lname=? OR email=?";
         prepStatement = connection.prepareStatement(query);
 
-        prepStatement.setString(1, searchTerm);
-        prepStatement.setString(2, searchTerm);
-        prepStatement.setString(3, searchTerm);
-        resultSet = prepStatement.executeQuery();
+        for(String searchTerm : searchTerms) {
+            prepStatement.setString(1, searchTerm);
+            prepStatement.setString(2, searchTerm);
+            prepStatement.setString(3, searchTerm);
+            resultSet = prepStatement.executeQuery();
 
-        while(resultSet.next()) {
-            Profile user = new Profile(resultSet);
-            System.out.println(user);
+            while(resultSet.next()) {
+                Profile user = new Profile(resultSet);
+                System.out.println(user);
+            }
         }
-        System.out.println("\nNOTE: No more users found.\n");
     }
 
     private void threeDegrees(long user_id1, long user_id2) throws SQLException {
