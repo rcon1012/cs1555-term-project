@@ -1,12 +1,4 @@
-import oracle.sql.NUMBER;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.text.ParseException;
 import java.util.*;
 
@@ -494,7 +486,7 @@ public class FaceSpace {
     }
 
     // Recursively searches through friends of friends until the target friend is found.
-    // Returns List of user_ids in reverse order from target to subject
+    // Returns true if a path exists, false otherwise.
     private boolean threeDegrees(long subject_id, long target_id, Stack<Long> path) throws SQLException {
         if(path.size() > 3) {
             return false;
@@ -587,8 +579,8 @@ public class FaceSpace {
 		readString("Press any key to continue");
 
 		// test initiate friendship
-		int friend1 = new int[3000];
-		int friend2 = new int[3000];
+		int friend1[] = new int[3000];
+		int friend2[] = new int[3000];
 		System.out.println("Attempt initiating 3000 random friendships...");
 		Random rand = new Random();
 		for(int i = 0; i < 3000; i++) {
@@ -607,7 +599,7 @@ public class FaceSpace {
         prepStatement = connection.prepareStatement(query);
         resultSet = prepStatement.executeQuery();
         while(resultSet.next()) {
-            Friendship f = new Friendship(resultSet);
+            Friend f = new Friend(resultSet);
 			System.out.println(f.toString());
 		}
 		
@@ -627,7 +619,7 @@ public class FaceSpace {
         prepStatement = connection.prepareStatement(query);
         resultSet = prepStatement.executeQuery();
         while(resultSet.next()) {
-            Friendship f = new Friendship(resultSet);
+            Friend f = new Friend(resultSet);
 			System.out.println(f.toString());
 		}
 		
@@ -636,7 +628,7 @@ public class FaceSpace {
 		// create groups
 		for(int i = 0; i < 3000; i++) {
 			Group group = new Group(-1, "group " + i, "description for group " + i, rand.nextInt(100) + 1);
-			System.out.println(group.toString);
+			System.out.println(group.toString());
 			createGroup(group);
 		}
 		
