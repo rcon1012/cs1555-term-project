@@ -99,7 +99,7 @@ public class FaceSpace {
                 displayNewMessages(readLong("User ID: "));
                 break;
             case 11:
-                searchForUserMultiplePrompt(readInt("Number of Search Terms: "));
+                searchForUser(readString("Search Term: "));
                 break;
             case 12:
                 threeDegrees(readLong("User 1 ID: "), readLong("User ID: "));
@@ -447,29 +447,20 @@ public class FaceSpace {
         displayMessages(user_id, true);
     }
 
-    private void searchForUserMultiplePrompt(int prompts) throws SQLException {
-        Collection<String> searchTerms = new ArrayList<String>();
-        for(int i = 0; i < prompts; i++) {
-            searchTerms.add(readString("Search Term: "));
-        }
-        searchForUser(searchTerms);
-    }
-
-    private void searchForUser(Iterable<String> searchTerms) throws SQLException {
+    private void searchForUser(String searchTerm) throws SQLException {
         query = "SELECT * FROM Profiles WHERE fname=? OR lname=? OR email=?";
         prepStatement = connection.prepareStatement(query);
 
-        for(String searchTerm : searchTerms) {
-            prepStatement.setString(1, searchTerm);
-            prepStatement.setString(2, searchTerm);
-            prepStatement.setString(3, searchTerm);
-            resultSet = prepStatement.executeQuery();
+        prepStatement.setString(1, searchTerm);
+        prepStatement.setString(2, searchTerm);
+        prepStatement.setString(3, searchTerm);
+        resultSet = prepStatement.executeQuery();
 
-            while(resultSet.next()) {
-                Profile user = new Profile(resultSet);
-                System.out.println(user);
-            }
+        while(resultSet.next()) {
+            Profile user = new Profile(resultSet);
+            System.out.println(user);
         }
+        System.out.println("\nNOTE: No more users found.\n");
     }
 
     private void threeDegrees(long user_id1, long user_id2) throws SQLException {
@@ -567,6 +558,10 @@ public class FaceSpace {
         final int maxGroupCapacity = 20;	// max group capacity
         final int topUsers = 10;	// number of top users for topMessagers
 
+        // disclaimer
+        readString("The exceptions thrown during this stress test are intentional to demonstrate the integrity constraints of the database." +
+        "\nEnter any key to continue.");
+        
 		// test create user
 		System.out.println("Creating " + insertions + " user profiles...");
 		for(int i = 0; i < insertions; i++) {
@@ -582,11 +577,13 @@ public class FaceSpace {
                 Profile profile = new Profile(-1, "fname " + i, "lname " + i, "email" + i + "@gmail.com", dob, lastOn);
                 System.out.println(profile.toString());
                 createUser(profile);
-            } catch(SQLIntegrityConstraintViolationException ignored) {}
+            } catch(SQLIntegrityConstraintViolationException e) {
+            	e.printStackTrace();
+            }
 		}
 
 		System.out.println(insertions + " user profiles created");
-		//readString("Enter any key to display users");
+		readString("Enter any key to display users");
 
 		// display users
 		query = "SELECT * FROM Profiles";
@@ -597,7 +594,7 @@ public class FaceSpace {
 			System.out.println(p.toString());
 		}
 
-		//readString("Enter any key to stress test initiateFriendship");
+		readString("Enter any key to stress test initiateFriendship");
 
 		// test initiate friendship
 		int friend1[] = new int[insertions];
@@ -612,11 +609,13 @@ public class FaceSpace {
                 friend2[i] = friendid_2;
                 System.out.println("Attempt initiating friendship between " + friendid_1 + " and " + friendid_2);
                 initiateFriendship(friendid_1, friendid_2);
-            } catch(SQLIntegrityConstraintViolationException ignored) {}
+            } catch(SQLIntegrityConstraintViolationException e) {
+            	e.printStackTrace();
+            }
 
 		}
 
-		//readString("Enter any key to display created friendships (likely less than " + insertions + " due to attempted initiation of existing friendship)");
+		readString("Enter any key to display created friendships (likely less than " + insertions + " due to attempted initiation of existing friendship)");
 
 		// display friends
 		query = "SELECT * FROM Friends";
@@ -627,7 +626,7 @@ public class FaceSpace {
 			System.out.println(f.toString());
 		}
 
-		//readString("Enter any key to stress test establishFriendship");
+		readString("Enter any key to stress test establishFriendship");
 
 		// test establish friendship
 		System.out.println("Attempt establishing " + insertions + " friendships...");
@@ -635,10 +634,12 @@ public class FaceSpace {
             try {
                 System.out.println("Attempt establishing friendship between " + friend1[i] + " and " + friend2[i]);
                 establishFriendship(friend1[i], friend2[i]);
-            } catch (SQLIntegrityConstraintViolationException ignored) {}
+            } catch (SQLIntegrityConstraintViolationException e) {
+            	e.printStackTrace();
+            }
 		}
 
-		//readString("Enter any key to view established friends (will fail on the same instances that initiateFriendship did)");
+		readString("Enter any key to view established friends (will fail on the same instances that initiateFriendship did)");
 
 		// display friends
 		query = "SELECT * FROM Friends";
@@ -649,18 +650,20 @@ public class FaceSpace {
 			System.out.println(f.toString());
 		}
 
-		//readString("Enter any key to stress test createGroup");
+		readString("Enter any key to stress test createGroup");
 
 		// create groups
 		for(int i = 0; i < insertions; i++) {
 			try {
-                Group group = new Group(-1, "group " + i, "description for group " + i, insertions);
+                Group group = new Group(-1, "group " + i, "description for group " + i, rand.nextInt(maxGroupCapacity) + 1);
                 System.out.println(group.toString());
                 createGroup(group);
-            } catch (SQLIntegrityConstraintViolationException ignored) {}
+            } catch (SQLIntegrityConstraintViolationException e) {
+            	e.printStackTrace();
+            }
 		}
 
-		//readString("Enter any key to view created groups");
+		readString("Enter any key to view created groups");
 
 		// display groups
 		query = "SELECT * FROM Groups";
@@ -671,7 +674,7 @@ public class FaceSpace {
 			System.out.println(g.toString());
 		}
 
-		//readString("Enter any key to stress test addToGroup");
+		readString("Enter any key to stress test addToGroup");
 
 		// add to group
 		for(int i = 0; i < insertions; i++) {
@@ -680,10 +683,13 @@ public class FaceSpace {
                 int userid = rand.nextInt(insertions) + 1;
                 System.out.println("Attempt to add user " + userid + " to group " + groupid);
                 addToGroup(groupid, userid);
-            } catch (SQLIntegrityConstraintViolationException ignored) {}
+            } catch (SQLException e) {
+            	e.printStackTrace();
+            }
 		}
 
-		//readString("Enter any key to view group members (addToGroup will fail in the case of a user already being a member of the group " + "or in the case that the max capacity has been reached)");
+		readString("Enter any key to view group members (addToGroup will fail in the case of a user already being a member of the group " +
+		"or in the case that the max capacity has been reached)");
 
 		// display members
 		query = "SELECT * FROM Members";
@@ -694,22 +700,24 @@ public class FaceSpace {
 			System.out.println(m.toString());
 		}
 
-		//readString("Enter any key to stressTest sendMessageToUser");
-
+		readString("Enter any key to stressTest sendMessageToUser");
+		
 		for(int i = 0; i < insertions; i++) {
-            try {
-                long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-                long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-                long diff = end - offset + 1;
-                Timestamp timesent = new Timestamp(offset + (long)(Math.random() * diff));
-                Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(1));
-                sendMessageToUser(message);
-                System.out.println(message);
-            } catch(SQLIntegrityConstraintViolationException ignored) {}
+			try {
+				long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+				long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+				long diff = end - offset + 1;
+				Timestamp timesent = new Timestamp(offset + (long)(Math.random() * diff));
+				Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(1));
+				sendMessageToUser(message);
+				System.out.println(message);
+			} catch(SQLException e) {
+				e.printStackTrace();
+			}
 		}
-
-		//readString("Enter any key to view sent messages to users");
-
+		
+		readString("Enter any key to view sent messages to users");
+		
 		// display messages to users
 		query = "SELECT * FROM Messages WHERE type = 1";
         prepStatement = connection.prepareStatement(query);
@@ -718,28 +726,27 @@ public class FaceSpace {
             Message m = new Message(resultSet);
 			System.out.println(m.toString());
 		}
-
-		//readString("Enter any key to stressTest sendMessageToGroup");
-
+        
+		readString("Enter any key to stressTest sendMessageToGroup" +
+		"\n Will fail in the case of a user not being a member of the group they are attempting to send a message to");
+		
 		for(int i = 0; i < insertions; i++) {
-            try {
-                long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-                long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-                long diff = end - offset + 1;
-                Timestamp timesent = new Timestamp(offset + (long)(Math.random() * diff));
-                Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(2));
-                sendMessageToGroup(message);
-                System.out.println(message);
-            } catch(SQLIntegrityConstraintViolationException ignored) {
-            } catch(SQLException e) {
-                if(!e.getMessage().contains("ORA-20001")) {
-                    throw e;
-                }
-            }
+			try {
+				long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+				long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+				long diff = end - offset + 1;
+				Timestamp timesent = new Timestamp(offset + (long)(Math.random() * diff));
+				Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(2));
+				sendMessageToGroup(message);
+				System.out.println(message);
+			} catch(SQLException e) {
+				e.printStackTrace();
+			}
+
 		}
-
-		//readString("Enter any key to view sent messages to groups");
-
+		
+		readString("Enter any key to view sent messages to groups");
+		
 		// display messages to groups
 		query = "SELECT * FROM Messages WHERE type = 2";
         prepStatement = connection.prepareStatement(query);
@@ -748,37 +755,50 @@ public class FaceSpace {
             Message m = new Message(resultSet);
 			System.out.println(m.toString());
 		}
-
-        //readString("Enter any key to stress test displayMessages");
-
+        
+        readString("Enter any key to stress test displayMessages");
+        
         // displayMessages
         for(int i = 1; i <= insertions; i++) {
-        	displayMessages(i);
+        	try {
+            	displayMessages(i);
+        	} catch(SQLException e) {
+        		e.printStackTrace();
+        	}
         }
-
-        //readString("Enter any key to stress test displayNewMessages (should be the same output as displayMessages " + "since all messages were sent after the user's last login (profile creation in this case)");
-
+        
+        readString("Enter any key to stress test displayNewMessages (should be the same output as displayMessages " +
+        "since all messages were sent after the user's last login (profile creation in this case)");
+        
         // displayMessages
         for(int i = 1; i <= insertions; i++) {
-        	displayNewMessages(i);
+        	try {
+        		displayNewMessages(i);
+        	} catch(SQLException e) {
+        		e.printStackTrace();
+        	}
+        	
         }
-
-        //readString("Enter any key to stress test searchForUser (matches on first name, last name, and email) " + " \nSearching for each user by first name in order by id ascending.");
-
+        
+        readString("Enter any key to stress test searchForUser (matches on first name, last name, and email) "
+        		+ " \nSearching for each user by first name in order by id ascending.");
+        
         // searchForUser
         for(int i = 1; i <= insertions; i++) {
-            try {
-                searchForUser(Arrays.asList("fname " + i));
-            } catch(SQLIntegrityConstraintViolationException ignored) {}
+        	try {
+            	searchForUser("fname " + i);
+        	} catch(SQLException e) {
+        		e.printStackTrace();
+        	}
         }
-
-        //readString("Enter any key to stress test threeDegrees" +
-        /*"\nWill first add a user with id " + insertions+1 + " and a user with id " + insertions+2 +
+        
+        readString("Enter any key to stress test threeDegrees" +
+        "\nWill first add a user with id " + insertions+1 + " and a user with id " + insertions+2 +
         "\n" + insertions+1 + " will initiate a friendship with user " + insertions + " and user " +
         insertions+2 + "." +
         "\n threeDegrees will then be invoked to find a path between user " + insertions + " and " +
-        "user " + insertions+2);*/
-
+        "user " + insertions+2);
+        
         // threeDegrees
         // create user insertions+1
         long offset = Timestamp.valueOf("1950-01-01 00:00:00").getTime();
@@ -801,47 +821,51 @@ public class FaceSpace {
 		lastOn = new Timestamp(offset + (long)(Math.random() * diff));
         createUser(new Profile(-1, "fname " + insertions+2, "lname " + insertions+2, "email" + insertions+2 + "@gmail.com", dob, lastOn));
         // initiate friendship between insertions+1 and insertions
-        initiateFriendship(insertions+1, insertions);
+        initiateFriendship(insertions, insertions+1);
         // initiate friendship between insertions+1 and insertions+2
         initiateFriendship(insertions+1, insertions+2);
         // call threeDegrees on insertions and insertions+2
         threeDegrees(insertions, insertions+2);
-
-        //readString("Enter any key to stressTest topMessagers." +
-        /*"\n Will first insert " + insertions + " messages to be sent by user " + insertions + " to random users." +
-        "\nThey will then be the top messager for the queries testing on the last year, last two years, and last three years");*/
-
+        
+        readString("Enter any key to stressTest topMessagers." +
+        "\n Will first insert " + insertions + " messages to be sent by user " + insertions + " to random users." +
+        "\nThey will then be the top messager for the queries testing on the last year, last two years, and last three years");
+        
         for(int i = 0; i < insertions; i++) {
-            try {
-                offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-                end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-                diff = end - offset + 1;
-                Timestamp timesent = new Timestamp(offset + (long)(Math.random() * diff));
-                Message message = new Message(-1, "subject " + i, insertions, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(1));
-                sendMessageToUser(message);
-                System.out.println(message);
-            } catch(SQLIntegrityConstraintViolationException ignored) {}
+        	try {
+        		offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+    			end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+    			diff = end - offset + 1;
+    			Timestamp timesent = new Timestamp(offset + (long)(Math.random() * diff));
+    			Message message = new Message(-1, "subject " + i, insertions, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(1));
+    			sendMessageToUser(message);
+        	} catch(SQLException e) {
+        		e.printStackTrace();
+        	}
+			
         }
-
+        
         System.out.println("Top 10 messagers for past year.");
         topMessagers(topUsers, 12);
         System.out.println("Top 10 messagers for past 2 years.");
         topMessagers(topUsers, 24);
         System.out.println("Top 10 messagers for past 3 years.");
         topMessagers(topUsers, 36);
-
-        //readString("Enter any key to stress test dropUsers." +
-        /*"\nWill drop all users and then display all tables");*/
+        
+        readString("Enter any key to stress test dropUsers." +
+        "\nWill drop all users and then display all tables");
         for(int i = 1; i <= insertions+2; i++) {
-            try {
-                dropUser(i);
-            } catch(SQLIntegrityConstraintViolationException ignored) {}
+        	try {
+            	dropUser(i);
+        	} catch(SQLException e) {
+        		e.printStackTrace();
+        	}
         }
-
+        
         // display profiles
-        //readString("Enter any key to display users");
+        readString("Enter any key to display users");
 
-		/*query = "SELECT * FROM Profiles";
+		query = "SELECT * FROM Profiles";
         prepStatement = connection.prepareStatement(query);
         resultSet = prepStatement.executeQuery();
         while(resultSet.next()) {
@@ -849,7 +873,7 @@ public class FaceSpace {
 			System.out.println(p.toString());
 		}
         // display friends
-        //readString("Enter any key to display friendships");
+        readString("Enter any key to display friendships");
 
 		query = "SELECT * FROM Friends";
         prepStatement = connection.prepareStatement(query);
@@ -859,7 +883,7 @@ public class FaceSpace {
 			System.out.println(f.toString());
 		}
         // display groups
-        //readString("Enter any key to display groups");
+        readString("Enter any key to display groups (note that this is should be the only non-empty table");
 
 		query = "SELECT * FROM Groups";
         prepStatement = connection.prepareStatement(query);
@@ -869,7 +893,7 @@ public class FaceSpace {
 			System.out.println(g.toString());
 		}
         // display members
-        //readString("Enter any key to display members");
+        readString("Enter any key to display members");
 
 		query = "SELECT * FROM Members";
         prepStatement = connection.prepareStatement(query);
@@ -879,7 +903,7 @@ public class FaceSpace {
 			System.out.println(m.toString());
 		}
         // display messages
-        //readString("Enter any key to display messages");
+        readString("Enter any key to display messages");
 
 		query = "SELECT * FROM Messages";
         prepStatement = connection.prepareStatement(query);
@@ -887,6 +911,6 @@ public class FaceSpace {
         while(resultSet.next()) {
         	Message m = new Message(resultSet);
 			System.out.println(m.toString());
-		}*/
+		}
 	}
 }
