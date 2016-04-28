@@ -201,6 +201,11 @@ public class FaceSpace {
     private static Timestamp currentTimestamp() {
         return new Timestamp((new java.util.Date()).getTime());
     }
+    
+    private static Timestamp randomTimestamp(Timestamp startTime, Timestamp endTime) {
+    	long diff = endTime.getTime() - startTime.getTime() + 1;
+        return new Timestamp(startTime.getTime() + (long) (Math.random() * diff));
+    }
 
     private void createUser(Profile profile) throws SQLException {
         // prepare the statement
@@ -618,14 +623,8 @@ public class FaceSpace {
 
         for (int i = 0; i < insertions; i++) {
             try {
-                long offset = Timestamp.valueOf("1950-01-01 00:00:00").getTime();
-                long end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
-                long diff = end - offset + 1;
-                Timestamp dob = new Timestamp(offset + (long) (Math.random() * diff));
-                offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-                end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-                diff = end - offset + 1;
-                Timestamp lastOn = new Timestamp(offset + (long) (Math.random() * diff));
+                Timestamp dob = randomTimestamp(Timestamp.valueOf("1950-01-01 00:00:00"), Timestamp.valueOf("2000-01-01 00:00:00"));
+                Timestamp lastOn = randomTimestamp(Timestamp.valueOf("2013-01-01 00:00:00"), Timestamp.valueOf("2016-01-01 00:00:00"));
                 Profile profile = new Profile(-1, "fname " + i, "lname " + i, "email" + i + "@gmail.com", dob, lastOn);
                 System.out.println(profile.toString());
                 createUser(profile);
@@ -722,10 +721,7 @@ public class FaceSpace {
         displayTableCount(TableType.MESSAGES);
         for (int i = 0; i < insertions; i++) {
             try {
-                long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-                long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-                long diff = end - offset + 1;
-                Timestamp timesent = new Timestamp(offset + (long) (Math.random() * diff));
+                Timestamp timesent = randomTimestamp(Timestamp.valueOf("2013-01-01 00:00:00"), Timestamp.valueOf("2016-01-01 00:00:00"));
                 Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.SINGLE_USER);
                 sendMessageToUser(message);
                 System.out.println(message);
@@ -742,10 +738,7 @@ public class FaceSpace {
         displayTableCount(TableType.MESSAGES);
         for (int i = 0; i < insertions; i++) {
             try {
-                long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-                long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-                long diff = end - offset + 1;
-                Timestamp timesent = new Timestamp(offset + (long) (Math.random() * diff));
+                Timestamp timesent = randomTimestamp(Timestamp.valueOf("2013-01-01 00:00:00"), Timestamp.valueOf("2016-01-01 00:00:00"));
                 int sender_id = rand.nextInt(insertions) + 1;
                 int recip_id = rand.nextInt(insertions) + 1;
                 Message message = new Message(-1, "subject " + i, sender_id, recip_id, timesent, "text " + i, MessageType.WHOLE_GROUP);
@@ -805,25 +798,13 @@ public class FaceSpace {
 
         // threeDegrees
         // create user insertions+1
-        long offset = Timestamp.valueOf("1950-01-01 00:00:00").getTime();
-        long end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
-        long diff = end - offset + 1;
-        Timestamp dob = new Timestamp(offset + (long) (Math.random() * diff));
-        offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-        end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-        diff = end - offset + 1;
-        Timestamp lastOn = new Timestamp(offset + (long) (Math.random() * diff));
+        Timestamp dob = randomTimestamp(Timestamp.valueOf("1950-01-01 00:00:00"), Timestamp.valueOf("2000-01-01 00:00:00"));
+        Timestamp lastOn = randomTimestamp(Timestamp.valueOf("2013-01-01 00:00:00"), Timestamp.valueOf("2016-01-01 00:00:00"));
         createUser(new Profile(-1, "fname " + insertions + 1, "lname " + insertions + 1, "email" + insertions + 1 + "@gmail.com", dob, lastOn));
 
         // create user insertions + 2
-        offset = Timestamp.valueOf("1950-01-01 00:00:00").getTime();
-        end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
-        diff = end - offset + 1;
-        dob = new Timestamp(offset + (long) (Math.random() * diff));
-        offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-        end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-        diff = end - offset + 1;
-        lastOn = new Timestamp(offset + (long) (Math.random() * diff));
+        dob = randomTimestamp(Timestamp.valueOf("1950-01-01 00:00:00"), Timestamp.valueOf("2000-01-01 00:00:00"));
+        lastOn = randomTimestamp(Timestamp.valueOf("2013-01-01 00:00:00"), Timestamp.valueOf("2016-01-01 00:00:00"));
         createUser(new Profile(-1, "fname " + insertions + 2, "lname " + insertions + 2, "email" + insertions + 2 + "@gmail.com", dob, lastOn));
 
         initiateFriendship(insertions, insertions + 1);
@@ -844,10 +825,7 @@ public class FaceSpace {
 
         for (int i = 0; i < insertions; i++) {
             try {
-                offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-                end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-                diff = end - offset + 1;
-                Timestamp timesent = new Timestamp(offset + (long) (Math.random() * diff));
+                Timestamp timesent = randomTimestamp(Timestamp.valueOf("2013-01-01 00:00:00"), Timestamp.valueOf("2016-01-01 00:00:00"));
                 Message message = new Message(-1, "subject " + i, insertions, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.SINGLE_USER);
                 sendMessageToUser(message);
             } catch (SQLException ignored) {
