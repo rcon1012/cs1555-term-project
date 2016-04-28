@@ -17,25 +17,31 @@ public class FaceSpace {
         url = "jdbc:oracle:thin:@localhost:1521:xe";
         username = "SYSTEM";
         password = "password";
-        if(args.length >= 1) { url = args[0]; }
-        if(args.length >= 2) { username = args[1]; }
-        if(args.length >= 3) { password = args[2]; }
+        if (args.length >= 1) {
+            url = args[0];
+        }
+        if (args.length >= 2) {
+            username = args[1];
+        }
+        if (args.length >= 3) {
+            password = args[2];
+        }
 
         try {
             System.out.println("Registering DB..");
-            DriverManager.registerDriver (new oracle.jdbc.driver.OracleDriver());
+            DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
 
             System.out.println("Connect to DB..");
             connection = new SafeConnection(url, username, password);
 
             FaceSpace demo = new FaceSpace();
             demo.runExample();
-        } catch(Exception e)  {
+        } catch (Exception e) {
             System.out.println("Error connecting to database.  Machine Error: " + e.toString());
         } finally {
             try {
                 connection.close();
-            } catch(Exception e)  {
+            } catch (Exception e) {
                 System.out.println("Error closing database connection.  Machine Error: " + e.toString());
             }
         }
@@ -50,18 +56,20 @@ public class FaceSpace {
                 System.out.println("Error running the sample queries. Machine Error: " + e.toString());
             } finally {
                 try {
-                    if(prepStatement != null) { prepStatement.close(); }
+                    if (prepStatement != null) {
+                        prepStatement.close();
+                    }
                 } catch (SQLException e) {
                     System.out.println("Cannot close statement. Machine error: " + e.toString());
                 }
 
                 choice = readInt("Choice: ");
             }
-        } while(choice != 0);
+        } while (choice != 0);
 
         try {
             connection.close();
-        } catch(Exception e)  {
+        } catch (Exception e) {
             System.out.println("Error closing database connection.  Machine Error: " + e.toString());
         }
     }
@@ -110,29 +118,29 @@ public class FaceSpace {
             case 14:
                 dropUser(readLong("User ID: "));
                 break;
-			case 15:
-				stressTest();
-				break;
+            case 15:
+                stressTest();
+                break;
             default:
                 System.out.println("No choice selected. Choices:");
                 System.out.println(
                         "0)\tExit\n" +
-                        "1)\tCreate User\n" +
-                        "2)\tInitiate Friendship\n" +
-                        "3)\tEstablish Friendship\n" +
-                        "4)\tDisplay Friendship\n" +
-                        "5)\tCreate Group\n" +
-                        "6)\tAdd To Group\n" +
-                        "7)\tSend Message To User\n" +
-                        "8)\tSend Message To Group\n" +
-                        "9)\tDisplay Messages\n" +
-                        "10)\tDisplay New Messages\n" +
-                        "11)\tSearch For User\n" +
-                        "12)\tThree Degrees\n" +
-                        "13)\tTop Messages\n" +
-                        "14)\tDrop User\n" +
-						"15)\tStress Test\n" +
-                        "-1)\tHelp\n");
+                                "1)\tCreate User\n" +
+                                "2)\tInitiate Friendship\n" +
+                                "3)\tEstablish Friendship\n" +
+                                "4)\tDisplay Friendship\n" +
+                                "5)\tCreate Group\n" +
+                                "6)\tAdd To Group\n" +
+                                "7)\tSend Message To User\n" +
+                                "8)\tSend Message To Group\n" +
+                                "9)\tDisplay Messages\n" +
+                                "10)\tDisplay New Messages\n" +
+                                "11)\tSearch For User\n" +
+                                "12)\tThree Degrees\n" +
+                                "13)\tTop Messages\n" +
+                                "14)\tDrop User\n" +
+                                "15)\tStress Test\n" +
+                                "-1)\tHelp\n");
                 break;
         }
     }
@@ -151,10 +159,10 @@ public class FaceSpace {
 
     private static int readInt(String prompt) {
         String consoleInput = readString(prompt);
-        while(true) {
+        while (true) {
             try {
                 return Integer.parseInt(consoleInput);
-            } catch(NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 System.out.println("ERROR: Input must be a base 10 integer. Please try again.\n");
                 consoleInput = readString(prompt);
             }
@@ -163,10 +171,10 @@ public class FaceSpace {
 
     private static long readLong(String prompt) {
         String consoleInput = readString(prompt);
-        while(true) {
+        while (true) {
             try {
                 return Long.parseLong(consoleInput);
-            } catch(NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 System.out.println("ERROR: Input must be a base 10 integer. Please try again.\n");
                 consoleInput = readString(prompt);
             }
@@ -175,11 +183,10 @@ public class FaceSpace {
 
     private static Timestamp readTimestamp(String prompt) {
         String consoleInput = readString(prompt);
-        while(true) {
+        while (true) {
             try {
                 return new Timestamp(df.parse(consoleInput).getTime());
-            }
-            catch(ParseException e) {
+            } catch (ParseException e) {
                 System.out.println("ERROR: Input must be of format \"" + dfString + "\". Please try again.\n");
                 consoleInput = readString(prompt);
             }
@@ -213,7 +220,7 @@ public class FaceSpace {
     }
 
     private void initiateFriendship(long friend_id1, long friend_id2) throws SQLException {
-        if(!friendshipExists(friend_id1, friend_id2) && !friendshipExists(friend_id2, friend_id1)) {
+        if (!friendshipExists(friend_id1, friend_id2) && !friendshipExists(friend_id2, friend_id1)) {
             Friend friendship = new Friend(friend_id1, friend_id2);
 
             query = "INSERT INTO Friends(friend1_id, friend2_id)  VALUES(?, ?)";
@@ -226,8 +233,7 @@ public class FaceSpace {
 
             System.out.println("SUCCESS: Friendship has been successfully inserted.\n");
             System.out.println(friendship);
-        }
-        else {
+        } else {
             System.out.println("ERROR: Friendship has already been initiated\n");
         }
     }
@@ -265,7 +271,7 @@ public class FaceSpace {
         prepStatement.setLong(1, user_id);
         resultSet = prepStatement.executeQuery();
 
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             Friend f = new Friend(resultSet);
             friends.add(f);
         }
@@ -275,7 +281,7 @@ public class FaceSpace {
         prepStatement.setLong(1, user_id);
         resultSet = prepStatement.executeQuery();
 
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             Friend f = new Friend(resultSet);
             friends.add(f);
         }
@@ -285,12 +291,12 @@ public class FaceSpace {
     private List<Long> getEstablishedFriends(long user_id) throws SQLException {
         List<Long> friend_ids = new ArrayList<Long>();
         ArrayList<Friend> friends = new ArrayList<Friend>(getFriends(user_id));
-        for(Friend subject : friends) {
+        for (Friend subject : friends) {
             long friend_id1 = subject.getFriend1Id();
             long friend_id2 = subject.getFriend2Id();
-            if(friend_id1 == user_id) {
+            if (friend_id1 == user_id) {
                 friend_ids.add(friend_id2);
-            } else if(friend_id2 == user_id) {
+            } else if (friend_id2 == user_id) {
                 friend_ids.add(friend_id1);
             } else {
                 return null;
@@ -303,7 +309,7 @@ public class FaceSpace {
     private void displayFriends(long user_id) throws SQLException {
         ArrayList<Friend> friends = new ArrayList<Friend>(getFriends(user_id));
         pp.displayBoxed("Friends of id: " + user_id);
-        for(int i = 0; i < friends.size(); i++) {
+        for (int i = 0; i < friends.size(); i++) {
             System.out.println(friends.get(i));
         }
         System.out.println("\nNOTE: No more users found.\n");
@@ -388,7 +394,7 @@ public class FaceSpace {
         String motd;
         Profile subject = getProfileFromId(user_id);
 
-        if(new_only) {
+        if (new_only) {
             motd = "(NEW) Inbox for id: ";
         } else {
             motd = "Inbox for id: ";
@@ -396,7 +402,7 @@ public class FaceSpace {
         pp.displayBoxed(motd + user_id);
 
         // display messages from a single user
-        if(new_only){
+        if (new_only) {
             query = "SELECT * FROM Messages INNER JOIN Profiles ON Messages.sender_id = Profiles.user_id WHERE recip_id = ? AND type = ? AND time_sent > ?";
         } else {
             query = "SELECT * FROM Messages INNER JOIN Profiles ON Messages.sender_id = Profiles.user_id WHERE recip_id = ? AND type = ?";
@@ -405,20 +411,20 @@ public class FaceSpace {
 
         prepStatement.setLong(1, user_id);
         prepStatement.setInt(2, 1); // Prev: MessagesType.SINGLE_USER, error
-        if(new_only) {
+        if (new_only) {
             prepStatement.setTimestamp(3, subject.getLastOn());
         }
 
         resultSet = prepStatement.executeQuery();
 
         pp.displayUnderlined("FROM: Single User Conversations");
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             Message message = new Message(resultSet);
             System.out.println(message);
         }
 
         // display messages from a group the user belongs to
-        if(new_only) {
+        if (new_only) {
             query = ("SELECT * FROM Messages WHERE recip_id = ? AND type = ? AND " +
                     "sender_id IN (SELECT group_id AS g_id FROM Members WHERE user_id = ?) AND time_sent > ?");
         } else {
@@ -430,14 +436,14 @@ public class FaceSpace {
         prepStatement.setLong(1, user_id);
         prepStatement.setInt(2, 2); // Prev: MessageType.WHOLE_GROUP, error
         prepStatement.setLong(3, user_id);
-        if(new_only) {
+        if (new_only) {
             prepStatement.setTimestamp(4, subject.getLastOn());
         }
 
         resultSet = prepStatement.executeQuery();
 
         pp.displayUnderlined("FROM: Group Conversations");
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             Message message = new Message(resultSet);
             System.out.println(message);
         }
@@ -449,7 +455,7 @@ public class FaceSpace {
 
     private void searchForUserMultiplePrompt(int prompts) throws SQLException {
         Collection<String> searchTerms = new ArrayList<String>();
-        for(int i = 0; i < prompts; i++) {
+        for (int i = 0; i < prompts; i++) {
             searchTerms.add(readString("Search Term: "));
         }
         searchForUser(searchTerms);
@@ -459,13 +465,13 @@ public class FaceSpace {
         query = "SELECT * FROM Profiles WHERE fname=? OR lname=? OR email=?";
         prepStatement = connection.prepareStatement(query);
 
-        for(String searchTerm : searchTerms) {
+        for (String searchTerm : searchTerms) {
             prepStatement.setString(1, searchTerm);
             prepStatement.setString(2, searchTerm);
             prepStatement.setString(3, searchTerm);
             resultSet = prepStatement.executeQuery();
 
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 Profile user = new Profile(resultSet);
                 System.out.println(user);
             }
@@ -478,10 +484,10 @@ public class FaceSpace {
         pp.displayBoxed("Three Degrees of Separation");
         pp.displayUnderlined("Path: ");
 
-        if(pathExists) {
+        if (pathExists) {
             int friend_count = path.size();
             System.out.println("\nFound path in " + (friend_count - 1) + " connections.");
-            for(Long fid : path) {
+            for (Long fid : path) {
                 System.out.println(fid);
             }
         } else {
@@ -493,20 +499,20 @@ public class FaceSpace {
     // Recursively searches through friends of friends until the target friend is found.
     // Returns true if a path exists, false otherwise.
     private boolean threeDegrees(long subject_id, long target_id, Stack<Long> path) throws SQLException {
-        if(path.size() > 3) {
+        if (path.size() > 3) {
             return false;
-        } else if(subject_id == target_id) {
+        } else if (subject_id == target_id) {
             path.push(target_id);
             return true;
         } else {
             ArrayList<Long> friend_ids = new ArrayList<Long>(getEstablishedFriends(subject_id));
-            for(int i=0; i < friend_ids.size(); i++) {
-                if(path.contains(friend_ids.get(i))) {
+            for (int i = 0; i < friend_ids.size(); i++) {
+                if (path.contains(friend_ids.get(i))) {
                     continue;
                 }
                 long friend_id = friend_ids.get(i);
                 path.push(subject_id);
-                if(threeDegrees(friend_id, target_id, path)) {
+                if (threeDegrees(friend_id, target_id, path)) {
                     return true;
                 }
                 path.pop();
@@ -517,6 +523,7 @@ public class FaceSpace {
 
     /**
      * displays top numUsers who sent or received messsages in the past numMonths
+     *
      * @param numUsers
      * @param numMonths
      * @throws SQLException
@@ -529,10 +536,10 @@ public class FaceSpace {
         to the number of months <= numMonths and to the top numUsers
         */
         query = "SELECT user_id, fname, lname, email, dob, last_on, " +
-        		"((SELECT COUNT(*) FROM Messages WHERE Messages.sender_id = P.user_id AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?)" +
-        		" + (SELECT COUNT(*) FROM Messages WHERE Messages.recip_id = P.user_id AND Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?)" +
-        		" + (SELECT COUNT(*) FROM Messages INNER JOIN Members ON Messages.recip_id = Members.group_id WHERE Members.user_id = P.user_id AND Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?))" +
-        		" AS num_msgs FROM Profiles P ORDER BY num_msgs DESC ";
+                "((SELECT COUNT(*) FROM Messages WHERE Messages.sender_id = P.user_id AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?)" +
+                " + (SELECT COUNT(*) FROM Messages WHERE Messages.recip_id = P.user_id AND Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?)" +
+                " + (SELECT COUNT(*) FROM Messages INNER JOIN Members ON Messages.recip_id = Members.group_id WHERE Members.user_id = P.user_id AND Messages.type = ? AND MONTHS_BETWEEN(SYSDATE, Messages.time_sent) <= ?))" +
+                " AS num_msgs FROM Profiles P ORDER BY num_msgs DESC ";
 
         prepStatement = connection.prepareStatement(query);
         prepStatement.setInt(1, numMonths);
@@ -542,7 +549,7 @@ public class FaceSpace {
         prepStatement.setInt(5, numMonths);
 
         resultSet = prepStatement.executeQuery();
-        while(resultSet.next() && numUsers-- > 0) {
+        while (resultSet.next() && numUsers-- > 0) {
             Profile profile = new Profile(resultSet);
             System.out.print(profile.toString());
             System.out.println("NUMBER OF MESSAGES:\t" + ResultSetWrapper.getInt(resultSet, 7) + "\n");
@@ -559,58 +566,78 @@ public class FaceSpace {
         System.out.println("SUCCESS: User is no longer present in database.\n");
     }
 
-	private void stressTest() throws SQLException {
-        // NOTE: We are ignoring SQLIntegrityConstraintViolationExceptions. They are only thrown because data is
-        //  randomly generated without regard for constraints. If this exception is thrown, just generate new random
-        //  data and try again.
-        final int insertions = 3000;    // number of new entries to be inserted to database
-        final int maxGroupCapacity = 20;	// max group capacity
-        final int topUsers = 10;	// number of top users for topMessagers
+    private void stressTest() throws SQLException {
+        final int insertions = 3000;        // number of new entries to be inserted to database
+        final int maxGroupCapacity = 20;    // max group capacity
+        final int topUsers = 10;            // number of top users for topMessagers
 
-        // disclaimer
-        /*readString("The exceptions thrown during this stress test are intentional to demonstrate the integrity constraints of the database." +
-        "\nEnter any key to continue.");*/
+        final int friend1[] = new int[insertions];
+        final int friend2[] = new int[insertions];
+        final Random rand = new Random();
 
-		// test create user
-		System.out.println("Creating " + insertions + " user profiles...");
-		for(int i = 0; i < insertions; i++) {
+        System.out.println("DISCLAIMER: SQLIntegrityConstraintViolationExceptions and SQLExceptions caused by " +
+                "validity checking in our constraints or triggers are ignored because data that is randomly generated" +
+                " will inevitably violate one of these constraints. We just generate new data to insert and try again.");
+
+        stressTestCreateUser(insertions);
+
+        stressTestInitiateFriendship(insertions, friend1, friend2, rand);
+
+        stressTestDisplayFriends();
+
+        stressTestEstablishFriendship(insertions, friend1, friend2);
+
+        stressTestDisplayFriends();
+
+        stressTestCreateGroup(insertions, maxGroupCapacity, rand);
+
+        stressTestAddToGroup(insertions, rand);
+
+        stressTestSendMessageToUser(insertions, rand);
+
+        stressTestSendMessageToGroup(insertions, rand);
+
+        stressTestDisplayMessages(insertions);
+
+        stressTestDisplayNewMessages(insertions);
+
+        stressTestSearchForUser(insertions);
+
+        stressTestThreeDegrees(insertions);
+
+        stressTestTopMessages(insertions, topUsers, rand);
+
+        stressTestDropUser(insertions);
+
+        printFinalResults();
+    }
+
+    private void stressTestCreateUser(int insertions) throws SQLException {
+        System.out.println("Creating " + insertions + " user profiles...");
+
+        for (int i = 0; i < insertions; i++) {
             try {
                 long offset = Timestamp.valueOf("1950-01-01 00:00:00").getTime();
                 long end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
                 long diff = end - offset + 1;
-                Timestamp dob = new Timestamp(offset + (long)(Math.random() * diff));
+                Timestamp dob = new Timestamp(offset + (long) (Math.random() * diff));
                 offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
                 end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
                 diff = end - offset + 1;
-                Timestamp lastOn = new Timestamp(offset + (long)(Math.random() * diff));
+                Timestamp lastOn = new Timestamp(offset + (long) (Math.random() * diff));
                 Profile profile = new Profile(-1, "fname " + i, "lname " + i, "email" + i + "@gmail.com", dob, lastOn);
                 System.out.println(profile.toString());
                 createUser(profile);
-            } catch(SQLIntegrityConstraintViolationException e) {
-            	e.printStackTrace();
+            } catch (SQLIntegrityConstraintViolationException ignored) {
             }
-		}
+        }
+    }
 
-		System.out.println(insertions + " user profiles created");
-		/*readString("Enter any key to display users");*/
+    private void stressTestInitiateFriendship(int insertions, int[] friend1, int[] friend2, Random rand) throws SQLException {
+                /*readString("Enter any key to stress test initiateFriendship");*/
 
-		// display users
-		query = "SELECT * FROM Profiles";
-        prepStatement = connection.prepareStatement(query);
-        resultSet = prepStatement.executeQuery();
-        while(resultSet.next()) {
-            Profile p = new Profile(resultSet);
-			System.out.println(p.toString());
-		}
-
-		/*readString("Enter any key to stress test initiateFriendship");*/
-
-		// test initiate friendship
-		int friend1[] = new int[insertions];
-		int friend2[] = new int[insertions];
-		System.out.println("Attempt initiating" + insertions + "random friendships...");
-		Random rand = new Random();
-		for(int i = 0; i < insertions; i++) {
+        System.out.println("Attempt initiating" + insertions + "random friendships...");
+        for (int i = 0; i < insertions; i++) {
             try {
                 int friendid_1 = rand.nextInt(insertions) + 1;
                 int friendid_2 = rand.nextInt(insertions) + 1;
@@ -618,190 +645,144 @@ public class FaceSpace {
                 friend2[i] = friendid_2;
                 System.out.println("Attempt initiating friendship between " + friendid_1 + " and " + friendid_2);
                 initiateFriendship(friendid_1, friendid_2);
-            } catch(SQLIntegrityConstraintViolationException e) {
-            	e.printStackTrace();
+            } catch (SQLIntegrityConstraintViolationException ignored) {
             }
+        }
+    }
 
-		}
+    private void stressTestEstablishFriendship(int insertions, int[] friend1, int[] friend2) throws SQLException {
+        //		readString("Enter any key to stress test establishFriendship");
 
-		/*readString("Enter any key to display created friendships (likely less than " + insertions + " due to attempted initiation of existing friendship)");*/
-
-		// display friends
-		query = "SELECT * FROM Friends";
-        prepStatement = connection.prepareStatement(query);
-        resultSet = prepStatement.executeQuery();
-        while(resultSet.next()) {
-            Friend f = new Friend(resultSet);
-			System.out.println(f.toString());
-		}
-
-//		readString("Enter any key to stress test establishFriendship");
-
-		// test establish friendship
-		System.out.println("Attempt establishing " + insertions + " friendships...");
-		for(int i = 0; i < insertions; i++) {
+        // test establish friendship
+        System.out.println("Attempt establishing " + insertions + " friendships...");
+        for (int i = 0; i < insertions; i++) {
             try {
                 System.out.println("Attempt establishing friendship between " + friend1[i] + " and " + friend2[i]);
                 establishFriendship(friend1[i], friend2[i]);
-            } catch (SQLIntegrityConstraintViolationException e) {
-            	e.printStackTrace();
+            } catch (SQLIntegrityConstraintViolationException ignored) {
             }
-		}
+        }
+    }
 
-//		readString("Enter any key to view established friends (will fail on the same instances that initiateFriendship did)");
+    private void stressTestDisplayFriends() throws SQLException {
+        		/*readString("Enter any key to display created friendships (likely less than " + insertions + " due to attempted initiation of existing friendship)");*/
 
-		// display friends
-		query = "SELECT * FROM Friends";
+        //		readString("Enter any key to view established friends (will fail on the same instances that initiateFriendship did)");
+
+        // display friends
+        query = "SELECT * FROM Friends";
         prepStatement = connection.prepareStatement(query);
         resultSet = prepStatement.executeQuery();
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             Friend f = new Friend(resultSet);
-			System.out.println(f.toString());
-		}
+            System.out.println(f.toString());
+        }
+    }
 
-//		readString("Enter any key to stress test createGroup");
+    private void stressTestCreateGroup(int insertions, int maxGroupCapacity, Random rand) throws SQLException {
+        //		readString("Enter any key to stress test createGroup");
 
-		// create groups
-		for(int i = 0; i < insertions; i++) {
-			try {
+        // create groups
+        for (int i = 0; i < insertions; i++) {
+            try {
                 Group group = new Group(-1, "group " + i, "description for group " + i, rand.nextInt(maxGroupCapacity) + 1);
                 System.out.println(group.toString());
                 createGroup(group);
-            } catch (SQLIntegrityConstraintViolationException e) {
-            	e.printStackTrace();
+            } catch (SQLIntegrityConstraintViolationException ignored) {
             }
-		}
+        }
+    }
 
-//		readString("Enter any key to view created groups");
+    private void stressTestAddToGroup(int insertions, Random rand) {
+        //		readString("Enter any key to stress test addToGroup");
 
-		// display groups
-		query = "SELECT * FROM Groups";
-        prepStatement = connection.prepareStatement(query);
-        resultSet = prepStatement.executeQuery();
-        while(resultSet.next()) {
-            Group g = new Group(resultSet);
-			System.out.println(g.toString());
-		}
-
-//		readString("Enter any key to stress test addToGroup");
-
-		// add to group
-		for(int i = 0; i < insertions; i++) {
+        // add to group
+        for (int i = 0; i < insertions; i++) {
             try {
                 int groupid = rand.nextInt(insertions) + 1;
                 int userid = rand.nextInt(insertions) + 1;
                 System.out.println("Attempt to add user " + userid + " to group " + groupid);
                 addToGroup(groupid, userid);
-            } catch (SQLException e) {
-            	e.printStackTrace();
+            } catch (SQLException ignored) {
             }
-		}
+        }
+    }
 
-//		readString("Enter any key to view group members (addToGroup will fail in the case of a user already being a member of the group " +
-//		"or in the case that the max capacity has been reached)");
+    private void stressTestSendMessageToUser(int insertions, Random rand) {
+        //		readString("Enter any key to stressTest sendMessageToUser");
 
-		// display members
-		query = "SELECT * FROM Members";
-        prepStatement = connection.prepareStatement(query);
-        resultSet = prepStatement.executeQuery();
-        while(resultSet.next()) {
-            Member m = new Member(resultSet);
-			System.out.println(m.toString());
-		}
+        for (int i = 0; i < insertions; i++) {
+            try {
+                long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+                long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+                long diff = end - offset + 1;
+                Timestamp timesent = new Timestamp(offset + (long) (Math.random() * diff));
+                Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(1));
+                sendMessageToUser(message);
+                System.out.println(message);
+            } catch (SQLException e) {
+            }
+        }
+    }
 
-//		readString("Enter any key to stressTest sendMessageToUser");
-
-		for(int i = 0; i < insertions; i++) {
-			try {
-				long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-				long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-				long diff = end - offset + 1;
-				Timestamp timesent = new Timestamp(offset + (long)(Math.random() * diff));
-				Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(1));
-				sendMessageToUser(message);
-				System.out.println(message);
-			} catch(SQLException e) {
-				e.printStackTrace();
-			}
-		}
-
-//		readString("Enter any key to view sent messages to users");
-
-		// display messages to users
-		query = "SELECT * FROM Messages WHERE type = 1";
-        prepStatement = connection.prepareStatement(query);
-        resultSet = prepStatement.executeQuery();
-        while(resultSet.next()) {
-            Message m = new Message(resultSet);
-			System.out.println(m.toString());
-		}
-
-//		readString("Enter any key to stressTest sendMessageToGroup" +
+    private void stressTestSendMessageToGroup(int insertions, Random rand) {
+        //		readString("Enter any key to stressTest sendMessageToGroup" +
 //		"\n Will fail in the case of a user not being a member of the group they are attempting to send a message to");
 
-		for(int i = 0; i < insertions; i++) {
-			try {
-				long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-				long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-				long diff = end - offset + 1;
-				Timestamp timesent = new Timestamp(offset + (long)(Math.random() * diff));
-				Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(2));
-				sendMessageToGroup(message);
-				System.out.println(message);
-			} catch(SQLException e) {
-				e.printStackTrace();
-			}
+        for (int i = 0; i < insertions; i++) {
+            try {
+                long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+                long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+                long diff = end - offset + 1;
+                Timestamp timesent = new Timestamp(offset + (long) (Math.random() * diff));
+                Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(2));
+                sendMessageToGroup(message);
+                System.out.println(message);
+            } catch (SQLException ignored) {
+            }
+        }
+    }
 
-		}
-
-//		readString("Enter any key to view sent messages to groups");
-
-		// display messages to groups
-		query = "SELECT * FROM Messages WHERE type = 2";
-        prepStatement = connection.prepareStatement(query);
-        resultSet = prepStatement.executeQuery();
-        while(resultSet.next()) {
-            Message m = new Message(resultSet);
-			System.out.println(m.toString());
-		}
-
-//        readString("Enter any key to stress test displayMessages");
+    private void stressTestDisplayMessages(int insertions) {
+        //        readString("Enter any key to stress test displayMessages");
 
         // displayMessages
-        for(int i = 1; i <= insertions; i++) {
-        	try {
-            	displayMessages(i);
-        	} catch(SQLException e) {
-        		e.printStackTrace();
-        	}
+        for (int i = 1; i <= insertions; i++) {
+            try {
+                displayMessages(i);
+            } catch (SQLException ignored) {
+            }
         }
+    }
 
-//        readString("Enter any key to stress test displayNewMessages (should be the same output as displayMessages " +
+    private void stressTestDisplayNewMessages(int insertions) {
+        //        readString("Enter any key to stress test displayNewMessages (should be the same output as displayMessages " +
 //        "since all messages were sent after the user's last login (profile creation in this case)");
 
         // displayMessages
-        for(int i = 1; i <= insertions; i++) {
-        	try {
-        		displayNewMessages(i);
-        	} catch(SQLException e) {
-        		e.printStackTrace();
-        	}
-
+        for (int i = 1; i <= insertions; i++) {
+            try {
+                displayNewMessages(i);
+            } catch (SQLException ignored) {
+            }
         }
+    }
 
-//        readString("Enter any key to stress test searchForUser (matches on first name, last name, and email) "
+    private void stressTestSearchForUser(int insertions) {
+        //        readString("Enter any key to stress test searchForUser (matches on first name, last name, and email) "
 //        		+ " \nSearching for each user by first name in order by id ascending.");
 
         // searchForUser
-        for(int i = 1; i <= insertions; i++) {
-        	try {
-            	searchForUser(Arrays.asList("fname " + i));
-        	} catch(SQLException e) {
-        		e.printStackTrace();
-        	}
+        for (int i = 1; i <= insertions; i++) {
+            try {
+                searchForUser(Arrays.asList("fname " + i));
+            } catch (SQLException ignored) {
+            }
         }
+    }
 
-//        readString("Enter any key to stress test threeDegrees" +
+    private void stressTestThreeDegrees(int insertions) throws SQLException {
+        //        readString("Enter any key to stress test threeDegrees" +
 //        "\nWill first add a user with id " + insertions+1 + " and a user with id " + insertions+2 +
 //        "\n" + insertions+1 + " will initiate a friendship with user " + insertions + " and user " +
 //        insertions+2 + "." +
@@ -811,49 +792,52 @@ public class FaceSpace {
         // threeDegrees
         // create user insertions+1
         long offset = Timestamp.valueOf("1950-01-01 00:00:00").getTime();
-		long end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
-		long diff = end - offset + 1;
-		Timestamp dob = new Timestamp(offset + (long)(Math.random() * diff));
-		offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-		end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-		diff = end - offset + 1;
-		Timestamp lastOn = new Timestamp(offset + (long)(Math.random() * diff));
-        createUser(new Profile(-1, "fname " + insertions+1, "lname " + insertions+1, "email" + insertions+1 + "@gmail.com", dob, lastOn));
+        long end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
+        long diff = end - offset + 1;
+        Timestamp dob = new Timestamp(offset + (long) (Math.random() * diff));
+        offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+        end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+        diff = end - offset + 1;
+        Timestamp lastOn = new Timestamp(offset + (long) (Math.random() * diff));
+        createUser(new Profile(-1, "fname " + insertions + 1, "lname " + insertions + 1, "email" + insertions + 1 + "@gmail.com", dob, lastOn));
 
         // create user insertions + 2
         offset = Timestamp.valueOf("1950-01-01 00:00:00").getTime();
-		end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
-		diff = end - offset + 1;
-		dob = new Timestamp(offset + (long)(Math.random() * diff));
-		offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-		end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-		diff = end - offset + 1;
-		lastOn = new Timestamp(offset + (long)(Math.random() * diff));
-        createUser(new Profile(-1, "fname " + insertions+2, "lname " + insertions+2, "email" + insertions+2 + "@gmail.com", dob, lastOn));
+        end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
+        diff = end - offset + 1;
+        dob = new Timestamp(offset + (long) (Math.random() * diff));
+        offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+        end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+        diff = end - offset + 1;
+        lastOn = new Timestamp(offset + (long) (Math.random() * diff));
+        createUser(new Profile(-1, "fname " + insertions + 2, "lname " + insertions + 2, "email" + insertions + 2 + "@gmail.com", dob, lastOn));
 
-        initiateFriendship(insertions, insertions+1);
-        establishFriendship(insertions, insertions+1);
+        initiateFriendship(insertions, insertions + 1);
+        establishFriendship(insertions, insertions + 1);
 
-        initiateFriendship(insertions+1, insertions+2);
-        establishFriendship(insertions+1, insertions+2);
+        initiateFriendship(insertions + 1, insertions + 2);
+        establishFriendship(insertions + 1, insertions + 2);
 
-        threeDegrees(insertions, insertions+2);
+        threeDegrees(insertions, insertions + 2);
+    }
 
-//        readString("Enter any key to stressTest topMessagers." +
+    private void stressTestTopMessages(int insertions, int topUsers, Random rand) throws SQLException {
+        long offset;
+        long end;
+        long diff;//        readString("Enter any key to stressTest topMessagers." +
 //        "\n Will first insert " + insertions + " messages to be sent by user " + insertions + " to random users." +
 //        "\nThey will then be the top messager for the queries testing on the last year, last two years, and last three years");
 
-        for(int i = 0; i < insertions; i++) {
-        	try {
-        		offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-    			end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-    			diff = end - offset + 1;
-    			Timestamp timesent = new Timestamp(offset + (long)(Math.random() * diff));
-    			Message message = new Message(-1, "subject " + i, insertions, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(1));
-    			sendMessageToUser(message);
-        	} catch(SQLException e) {
-        		e.printStackTrace();
-        	}
+        for (int i = 0; i < insertions; i++) {
+            try {
+                offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+                end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+                diff = end - offset + 1;
+                Timestamp timesent = new Timestamp(offset + (long) (Math.random() * diff));
+                Message message = new Message(-1, "subject " + i, insertions, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(1));
+                sendMessageToUser(message);
+            } catch (SQLException ignored) {
+            }
         }
 
         System.out.println("Top 10 messagers for past year.");
@@ -862,66 +846,69 @@ public class FaceSpace {
         topMessagers(topUsers, 24);
         System.out.println("Top 10 messagers for past 3 years.");
         topMessagers(topUsers, 36);
+    }
 
-//        readString("Enter any key to stress test dropUsers." +
+    private void stressTestDropUser(int insertions) {
+        //        readString("Enter any key to stress test dropUsers." +
 //        "\nWill drop all users and then display all tables");
-        for(int i = 1; i <= insertions+2; i++) {
-        	try {
-            	dropUser(i);
-        	} catch(SQLException e) {
-        		e.printStackTrace();
-        	}
+        for (int i = 1; i <= insertions + 2; i++) {
+            try {
+                dropUser(i);
+            } catch (SQLException ignored) {
+            }
         }
+    }
 
+    private void printFinalResults() throws SQLException {
         // display profiles
 //        readString("Enter any key to display users");
 
-		query = "SELECT * FROM Profiles";
+        query = "SELECT * FROM Profiles";
         prepStatement = connection.prepareStatement(query);
         resultSet = prepStatement.executeQuery();
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             Profile p = new Profile(resultSet);
-			System.out.println(p.toString());
-		}
+            System.out.println(p.toString());
+        }
         // display friends
 //        readString("Enter any key to display friendships");
 
-		query = "SELECT * FROM Friends";
+        query = "SELECT * FROM Friends";
         prepStatement = connection.prepareStatement(query);
         resultSet = prepStatement.executeQuery();
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             Friend f = new Friend(resultSet);
-			System.out.println(f.toString());
-		}
+            System.out.println(f.toString());
+        }
         // display groups
 //        readString("Enter any key to display groups (note that this is should be the only non-empty table");
 
-		query = "SELECT * FROM Groups";
+        query = "SELECT * FROM Groups";
         prepStatement = connection.prepareStatement(query);
         resultSet = prepStatement.executeQuery();
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             Group g = new Group(resultSet);
-			System.out.println(g.toString());
-		}
+            System.out.println(g.toString());
+        }
         // display members
 //        readString("Enter any key to display members");
 
-		query = "SELECT * FROM Members";
+        query = "SELECT * FROM Members";
         prepStatement = connection.prepareStatement(query);
         resultSet = prepStatement.executeQuery();
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             Member m = new Member(resultSet);
-			System.out.println(m.toString());
-		}
+            System.out.println(m.toString());
+        }
         // display messages
 //        readString("Enter any key to display messages");
 
-		query = "SELECT * FROM Messages";
+        query = "SELECT * FROM Messages";
         prepStatement = connection.prepareStatement(query);
         resultSet = prepStatement.executeQuery();
-        while(resultSet.next()) {
-        	Message m = new Message(resultSet);
-			System.out.println(m.toString());
-		}
-	}
+        while (resultSet.next()) {
+            Message m = new Message(resultSet);
+            System.out.println(m.toString());
+        }
+    }
 }

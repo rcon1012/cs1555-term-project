@@ -24,7 +24,7 @@ public enum MessageType {
     private final int value;
     private final String description;
 
-    private MessageType(int value, String description) {
+    MessageType(int value, String description) {
         this.value = value;
         this.description = description;
     }
