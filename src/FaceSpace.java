@@ -551,6 +551,9 @@ public class FaceSpace {
     }
 
 	private void stressTest() throws SQLException {
+        // NOTE: We are ignoring SQLIntegrityConstraintViolationExceptions. They are only thrown because data is
+        //  randomly generated without regard for constraints. If this exception is thrown, just generate new random
+        //  data and try again.
         final int insertions = 3000;    // number of new entries to be inserted to database
         final int maxGroupCapacity = 20;	// max group capacity
         final int topUsers = 10;	// number of top users for topMessagers
@@ -558,17 +561,19 @@ public class FaceSpace {
 		// test create user
 		System.out.println("Creating " + insertions + " user profiles...");
 		for(int i = 0; i < insertions; i++) {
-			long offset = Timestamp.valueOf("1950-01-01 00:00:00").getTime();
-			long end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
-			long diff = end - offset + 1;
-			Timestamp dob = new Timestamp(offset + (long)(Math.random() * diff));
-			offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
-			end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
-			diff = end - offset + 1;
-			Timestamp lastOn = new Timestamp(offset + (long)(Math.random() * diff));
-			Profile profile = new Profile(-1, "fname " + i, "lname " + i, "email" + i + "@gmail.com", dob, lastOn);
-			System.out.println(profile.toString());
-			createUser(profile);
+            try {
+                long offset = Timestamp.valueOf("1950-01-01 00:00:00").getTime();
+                long end = Timestamp.valueOf("2000-01-01 00:00:00").getTime();
+                long diff = end - offset + 1;
+                Timestamp dob = new Timestamp(offset + (long)(Math.random() * diff));
+                offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
+                end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
+                diff = end - offset + 1;
+                Timestamp lastOn = new Timestamp(offset + (long)(Math.random() * diff));
+                Profile profile = new Profile(-1, "fname " + i, "lname " + i, "email" + i + "@gmail.com", dob, lastOn);
+                System.out.println(profile.toString());
+                createUser(profile);
+            } catch(SQLIntegrityConstraintViolationException ignored) {}
 		}
 
 		System.out.println(insertions + " user profiles created");
@@ -591,12 +596,15 @@ public class FaceSpace {
 		System.out.println("Attempt initiating" + insertions + "random friendships...");
 		Random rand = new Random();
 		for(int i = 0; i < insertions; i++) {
-			int friendid_1 = rand.nextInt(insertions) + 1;
-			int friendid_2 = rand.nextInt(insertions) + 1;
-			friend1[i] = friendid_1;
-			friend2[i] = friendid_2;
-			System.out.println("Attempt initiating friendship between " + friendid_1 + " and " + friendid_2);
-			initiateFriendship(friendid_1, friendid_2);
+            try {
+                int friendid_1 = rand.nextInt(insertions) + 1;
+                int friendid_2 = rand.nextInt(insertions) + 1;
+                friend1[i] = friendid_1;
+                friend2[i] = friendid_2;
+                System.out.println("Attempt initiating friendship between " + friendid_1 + " and " + friendid_2);
+                initiateFriendship(friendid_1, friendid_2);
+            } catch(SQLIntegrityConstraintViolationException ignored) {}
+
 		}
 
 		readString("Enter any key to display created friendships (likely less than " + insertions + " due to attempted initiation of existing friendship)");
@@ -615,8 +623,10 @@ public class FaceSpace {
 		// test establish friendship
 		System.out.println("Attempt establishing " + insertions + " friendships...");
 		for(int i = 0; i < insertions; i++) {
-			System.out.println("Attempt establishing friendship between " + friend1[i] + " and " + friend2[i]);
-			establishFriendship(friend1[i], friend2[i]);
+            try {
+                System.out.println("Attempt establishing friendship between " + friend1[i] + " and " + friend2[i]);
+                establishFriendship(friend1[i], friend2[i]);
+            } catch (SQLIntegrityConstraintViolationException ignored) {}
 		}
 
 		readString("Enter any key to view established friends (will fail on the same instances that initiateFriendship did)");
@@ -634,9 +644,11 @@ public class FaceSpace {
 
 		// create groups
 		for(int i = 0; i < insertions; i++) {
-			Group group = new Group(-1, "group " + i, "description for group " + i, rand.nextInt(maxGroupCapacity) + 1);
-			System.out.println(group.toString());
-			createGroup(group);
+			try {
+                Group group = new Group(-1, "group " + i, "description for group " + i, insertions);
+                System.out.println(group.toString());
+                createGroup(group);
+            } catch (SQLIntegrityConstraintViolationException ignored) {}
 		}
 
 		readString("Enter any key to view created groups");
@@ -654,10 +666,12 @@ public class FaceSpace {
 
 		// add to group
 		for(int i = 0; i < insertions; i++) {
-			int groupid = rand.nextInt(insertions) + 1;
-			int userid = rand.nextInt(insertions) + 1;
-			System.out.println("Attempt to add user " + userid + " to group " + groupid);
-			addToGroup(groupid, userid);
+            try {
+                int groupid = rand.nextInt(insertions) + 1;
+                int userid = rand.nextInt(insertions) + 1;
+                System.out.println("Attempt to add user " + userid + " to group " + groupid);
+                addToGroup(groupid, userid);
+            } catch (SQLIntegrityConstraintViolationException ignored) {}
 		}
 
 		readString("Enter any key to view group members (addToGroup will fail in the case of a user already being a member of the group " +
