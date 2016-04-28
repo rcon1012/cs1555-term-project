@@ -459,27 +459,34 @@ public class FaceSpace {
     }
 
     private void searchForUserMultiplePrompt(int prompts) throws SQLException {
-        Collection<String> searchTerms = new ArrayList<String>();
+    	ArrayList<String> searchTerms = new ArrayList<String>();
         for (int i = 0; i < prompts; i++) {
             searchTerms.add(readString("Search Term: "));
         }
         searchForUser(searchTerms);
     }
 
-    private void searchForUser(Iterable<String> searchTerms) throws SQLException {
-        query = "SELECT * FROM Profiles WHERE fname=? OR lname=? OR email=?";
+    private void searchForUser(ArrayList<String> searchTerms) throws SQLException {
+    	query = "";
+        for (int i = 0; i < searchTerms.size(); i++) {
+        	if(i > 0) {
+        		query += " UNION ";
+        	}
+        	query += "(SELECT * FROM Profiles WHERE fname=? OR lname=? OR email=?)";
+        }
+        
         prepStatement = connection.prepareStatement(query);
+        
+        for(int i = 0; i < searchTerms.size(); i++) {
+            prepStatement.setString((i*3)+1, searchTerms.get(i));
+            prepStatement.setString((i*3)+2, searchTerms.get(i));
+            prepStatement.setString((i*3)+3, searchTerms.get(i));
+        }
 
-        for (String searchTerm : searchTerms) {
-            prepStatement.setString(1, searchTerm);
-            prepStatement.setString(2, searchTerm);
-            prepStatement.setString(3, searchTerm);
-            resultSet = prepStatement.executeQuery();
-
-            while (resultSet.next()) {
-                Profile user = new Profile(resultSet);
-                System.out.println(user);
-            }
+        resultSet = prepStatement.executeQuery();
+        while (resultSet.next()) {
+            Profile user = new Profile(resultSet);
+            System.out.println(user);
         }
     }
 
@@ -782,7 +789,7 @@ public class FaceSpace {
         // searchForUser
         for (int i = 1; i <= insertions; i++) {
             try {
-                searchForUser(Arrays.asList("fname " + i));
+                searchForUser(new ArrayList<String>(Arrays.asList("fname " + i)));
             } catch (SQLException ignored) {
             }
         }
@@ -817,11 +824,9 @@ public class FaceSpace {
     }
 
     private void stressTestTopMessages(int insertions, int topUsers, Random rand) throws SQLException {
-        long offset;
-        long end;
-        long diff;//        readString("Enter any key to stressTest topMessagers." +
-//        "\n Will first insert " + insertions + " messages to be sent by user " + insertions + " to random users." +
-//        "\nThey will then be the top messager for the queries testing on the last year, last two years, and last three years");
+		//        readString("Enter any key to stressTest topMessagers." +
+		//        "\n Will first insert " + insertions + " messages to be sent by user " + insertions + " to random users." +
+		//        "\nThey will then be the top messager for the queries testing on the last year, last two years, and last three years");
 
         for (int i = 0; i < insertions; i++) {
             try {
