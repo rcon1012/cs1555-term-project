@@ -613,6 +613,7 @@ public class FaceSpace {
     }
 
     private void stressTestCreateUser(int insertions) throws SQLException {
+        displayTableCount(TableType.PROFILES);
         System.out.println("Creating " + insertions + " user profiles...");
 
         for (int i = 0; i < insertions; i++) {
@@ -631,12 +632,13 @@ public class FaceSpace {
             } catch (SQLIntegrityConstraintViolationException ignored) {
             }
         }
+        displayTableCount(TableType.PROFILES, true);
     }
 
     private void stressTestInitiateFriendship(int insertions, int[] friend1, int[] friend2, Random rand) throws SQLException {
                 /*readString("Enter any key to stress test initiateFriendship");*/
-
-        System.out.println("Attempt initiating" + insertions + "random friendships...");
+        displayTableCount(TableType.FRIENDS);
+        System.out.println("Attempt initiating " + insertions + " random friendships...");
         for (int i = 0; i < insertions; i++) {
             try {
                 int friendid_1 = rand.nextInt(insertions) + 1;
@@ -648,12 +650,14 @@ public class FaceSpace {
             } catch (SQLIntegrityConstraintViolationException ignored) {
             }
         }
+        displayTableCount(TableType.FRIENDS, true);
     }
 
     private void stressTestEstablishFriendship(int insertions, int[] friend1, int[] friend2) throws SQLException {
         //		readString("Enter any key to stress test establishFriendship");
 
         // test establish friendship
+        displayTableCount(TableType.FRIENDS);
         System.out.println("Attempt establishing " + insertions + " friendships...");
         for (int i = 0; i < insertions; i++) {
             try {
@@ -662,6 +666,7 @@ public class FaceSpace {
             } catch (SQLIntegrityConstraintViolationException ignored) {
             }
         }
+        displayTableCount(TableType.FRIENDS, true);
     }
 
     private void stressTestDisplayFriends() throws SQLException {
@@ -683,6 +688,7 @@ public class FaceSpace {
         //		readString("Enter any key to stress test createGroup");
 
         // create groups
+        displayTableCount(TableType.GROUPS);
         for (int i = 0; i < insertions; i++) {
             try {
                 Group group = new Group(-1, "group " + i, "description for group " + i, rand.nextInt(maxGroupCapacity) + 1);
@@ -691,12 +697,14 @@ public class FaceSpace {
             } catch (SQLIntegrityConstraintViolationException ignored) {
             }
         }
+        displayTableCount(TableType.GROUPS, true);
     }
 
-    private void stressTestAddToGroup(int insertions, Random rand) {
+    private void stressTestAddToGroup(int insertions, Random rand) throws SQLException {
         //		readString("Enter any key to stress test addToGroup");
 
         // add to group
+        displayTableCount(TableType.MEMBERS);
         for (int i = 0; i < insertions; i++) {
             try {
                 int groupid = rand.nextInt(insertions) + 1;
@@ -706,41 +714,47 @@ public class FaceSpace {
             } catch (SQLException ignored) {
             }
         }
+        displayTableCount(TableType.MEMBERS, true);
     }
 
-    private void stressTestSendMessageToUser(int insertions, Random rand) {
+    private void stressTestSendMessageToUser(int insertions, Random rand) throws SQLException {
         //		readString("Enter any key to stressTest sendMessageToUser");
-
+        displayTableCount(TableType.MESSAGES);
         for (int i = 0; i < insertions; i++) {
             try {
                 long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
                 long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
                 long diff = end - offset + 1;
                 Timestamp timesent = new Timestamp(offset + (long) (Math.random() * diff));
-                Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(1));
+                Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.SINGLE_USER);
                 sendMessageToUser(message);
                 System.out.println(message);
             } catch (SQLException e) {
             }
         }
+        displayTableCount(TableType.MESSAGES, true);
     }
 
-    private void stressTestSendMessageToGroup(int insertions, Random rand) {
+    private void stressTestSendMessageToGroup(int insertions, Random rand) throws SQLException {
         //		readString("Enter any key to stressTest sendMessageToGroup" +
 //		"\n Will fail in the case of a user not being a member of the group they are attempting to send a message to");
 
+        displayTableCount(TableType.MESSAGES);
         for (int i = 0; i < insertions; i++) {
             try {
                 long offset = Timestamp.valueOf("2013-01-01 00:00:00").getTime();
                 long end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
                 long diff = end - offset + 1;
                 Timestamp timesent = new Timestamp(offset + (long) (Math.random() * diff));
-                Message message = new Message(-1, "subject " + i, rand.nextInt(insertions) + 1, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(2));
+                int sender_id = rand.nextInt(insertions) + 1;
+                int recip_id = rand.nextInt(insertions) + 1;
+                Message message = new Message(-1, "subject " + i, sender_id, recip_id, timesent, "text " + i, MessageType.WHOLE_GROUP);
                 sendMessageToGroup(message);
                 System.out.println(message);
             } catch (SQLException ignored) {
             }
         }
+        displayTableCount(TableType.MESSAGES, true);
     }
 
     private void stressTestDisplayMessages(int insertions) {
@@ -834,7 +848,7 @@ public class FaceSpace {
                 end = Timestamp.valueOf("2016-01-01 00:00:00").getTime();
                 diff = end - offset + 1;
                 Timestamp timesent = new Timestamp(offset + (long) (Math.random() * diff));
-                Message message = new Message(-1, "subject " + i, insertions, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.fromInt(1));
+                Message message = new Message(-1, "subject " + i, insertions, rand.nextInt(insertions) + 1, timesent, "text " + i, MessageType.SINGLE_USER);
                 sendMessageToUser(message);
             } catch (SQLException ignored) {
             }
@@ -848,15 +862,17 @@ public class FaceSpace {
         topMessagers(topUsers, 36);
     }
 
-    private void stressTestDropUser(int insertions) {
+    private void stressTestDropUser(int insertions) throws SQLException {
         //        readString("Enter any key to stress test dropUsers." +
 //        "\nWill drop all users and then display all tables");
+        displayTableCount(TableType.PROFILES);
         for (int i = 1; i <= insertions + 2; i++) {
             try {
                 dropUser(i);
             } catch (SQLException ignored) {
             }
         }
+        displayTableCount(TableType.PROFILES, true);
     }
 
     private void printFinalResults() throws SQLException {
@@ -910,5 +926,43 @@ public class FaceSpace {
             Message m = new Message(resultSet);
             System.out.println(m.toString());
         }
+
+        pp.displayDivider();
+    }
+
+    private int displayTableCount(TableType table_type) throws SQLException {
+        return displayTableCount(table_type, false);
+    }
+
+    /*
+        Table_id = {
+            1: Profiles
+            2: Friends
+            3: Groups
+            4: Members
+            5: Messages
+        }
+     */
+    private int displayTableCount(TableType table_type, boolean done) throws SQLException {
+        String table_name = null;
+        int retVal = -1;
+
+        String status = "END: ";
+        if(!done) {
+            status = "START: ";
+        }
+        int table_id = table_type.value();
+        if(table_id > 0 && table_id < 6) {
+            table_name = table_type.toString();
+        }
+        if(table_name != null) {
+            query = "SELECT COUNT(*) AS total FROM " + table_name;
+            prepStatement = connection.prepareStatement(query);
+            resultSet = prepStatement.executeQuery();
+            resultSet.next();
+            retVal = resultSet.getInt("total");
+            pp.displayBoxed(status + "Table " + table_name + " contains " + retVal + " records.");
+        }
+        return retVal;
     }
 }
