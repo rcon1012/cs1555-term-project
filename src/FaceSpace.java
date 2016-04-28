@@ -655,7 +655,7 @@ public class FaceSpace {
 		// create groups
 		for(int i = 0; i < insertions; i++) {
 			try {
-                Group group = new Group(-1, "group " + i, "description for group " + i, insertions);
+                Group group = new Group(-1, "group " + i, "description for group " + i, rand.nextInt(maxGroupCapacity) + 1);
                 System.out.println(group.toString());
                 createGroup(group);
             } catch (SQLIntegrityConstraintViolationException e) {
