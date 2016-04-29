@@ -201,7 +201,7 @@ public class FaceSpace {
     private static Timestamp currentTimestamp() {
         return new Timestamp((new java.util.Date()).getTime());
     }
-    
+
     private static Timestamp randomTimestamp(Timestamp startTime, Timestamp endTime) {
     	long diff = endTime.getTime() - startTime.getTime() + 1;
         return new Timestamp(startTime.getTime() + (long) (Math.random() * diff));
@@ -474,9 +474,9 @@ public class FaceSpace {
         	}
         	query += "(SELECT * FROM Profiles WHERE fname=? OR lname=? OR email=?)";
         }
-        
+
         prepStatement = connection.prepareStatement(query);
-        
+
         for(int i = 0; i < searchTerms.size(); i++) {
             prepStatement.setString((i*3)+1, searchTerms.get(i));
             prepStatement.setString((i*3)+2, searchTerms.get(i));
@@ -595,11 +595,11 @@ public class FaceSpace {
 
         stressTestInitiateFriendship(insertions, friend1, friend2, rand);
 
-        stressTestDisplayFriends();
+        stressTestDisplayFriends(insertions);
 
         stressTestEstablishFriendship(insertions, friend1, friend2);
 
-        stressTestDisplayFriends();
+        stressTestDisplayFriends(insertions);
 
         stressTestCreateGroup(insertions, maxGroupCapacity, rand);
 
@@ -642,7 +642,8 @@ public class FaceSpace {
     }
 
     private void stressTestInitiateFriendship(int insertions, int[] friend1, int[] friend2, Random rand) throws SQLException {
-                /*readString("Enter any key to stress test initiateFriendship");*/
+        readString("Enter any key to stress test initiateFriendship");
+
         displayTableCount(TableType.FRIENDS);
         System.out.println("Attempt initiating " + insertions + " random friendships...");
         for (int i = 0; i < insertions; i++) {
@@ -660,9 +661,8 @@ public class FaceSpace {
     }
 
     private void stressTestEstablishFriendship(int insertions, int[] friend1, int[] friend2) throws SQLException {
-        //		readString("Enter any key to stress test establishFriendship");
+        readString("Enter any key to stress test establishFriendship");
 
-        // test establish friendship
         displayTableCount(TableType.FRIENDS);
         System.out.println("Attempt establishing " + insertions + " friendships...");
         for (int i = 0; i < insertions; i++) {
@@ -675,12 +675,9 @@ public class FaceSpace {
         displayTableCount(TableType.FRIENDS, true);
     }
 
-    private void stressTestDisplayFriends() throws SQLException {
-        		/*readString("Enter any key to display created friendships (likely less than " + insertions + " due to attempted initiation of existing friendship)");*/
+    private void stressTestDisplayFriends(int insertions) throws SQLException {
+        readString("Enter any key to display created friendships (likely less than " + insertions + " due to attempted initiation of existing friendship)");
 
-        //		readString("Enter any key to view established friends (will fail on the same instances that initiateFriendship did)");
-
-        // display friends
         query = "SELECT * FROM Friends";
         prepStatement = connection.prepareStatement(query);
         resultSet = prepStatement.executeQuery();
@@ -691,9 +688,8 @@ public class FaceSpace {
     }
 
     private void stressTestCreateGroup(int insertions, int maxGroupCapacity, Random rand) throws SQLException {
-        //		readString("Enter any key to stress test createGroup");
+        readString("Enter any key to stress test createGroup");
 
-        // create groups
         displayTableCount(TableType.GROUPS);
         for (int i = 0; i < insertions; i++) {
             try {
@@ -707,9 +703,8 @@ public class FaceSpace {
     }
 
     private void stressTestAddToGroup(int insertions, Random rand) throws SQLException {
-        //		readString("Enter any key to stress test addToGroup");
+        readString("Enter any key to stress test addToGroup");
 
-        // add to group
         displayTableCount(TableType.MEMBERS);
         for (int i = 0; i < insertions; i++) {
             try {
@@ -724,7 +719,8 @@ public class FaceSpace {
     }
 
     private void stressTestSendMessageToUser(int insertions, Random rand) throws SQLException {
-        //		readString("Enter any key to stressTest sendMessageToUser");
+        readString("Enter any key to stressTest sendMessageToUser");
+
         displayTableCount(TableType.MESSAGES);
         for (int i = 0; i < insertions; i++) {
             try {
@@ -739,8 +735,8 @@ public class FaceSpace {
     }
 
     private void stressTestSendMessageToGroup(int insertions, Random rand) throws SQLException {
-        //		readString("Enter any key to stressTest sendMessageToGroup" +
-//		"\n Will fail in the case of a user not being a member of the group they are attempting to send a message to");
+        readString("Enter any key to stressTest sendMessageToGroup" +
+		"\n Will fail in the case of a user not being a member of the group they are attempting to send a message to");
 
         displayTableCount(TableType.MESSAGES);
         for (int i = 0; i < insertions; i++) {
@@ -758,9 +754,8 @@ public class FaceSpace {
     }
 
     private void stressTestDisplayMessages(int insertions) {
-        //        readString("Enter any key to stress test displayMessages");
+        readString("Enter any key to stress test displayMessages");
 
-        // displayMessages
         for (int i = 1; i <= insertions; i++) {
             try {
                 displayMessages(i);
@@ -770,10 +765,9 @@ public class FaceSpace {
     }
 
     private void stressTestDisplayNewMessages(int insertions) {
-        //        readString("Enter any key to stress test displayNewMessages (should be the same output as displayMessages " +
-//        "since all messages were sent after the user's last login (profile creation in this case)");
+        readString("Enter any key to stress test displayNewMessages (should be the same output as displayMessages " +
+        "since all messages were sent after the user's last login (profile creation in this case)");
 
-        // displayMessages
         for (int i = 1; i <= insertions; i++) {
             try {
                 displayNewMessages(i);
@@ -783,10 +777,9 @@ public class FaceSpace {
     }
 
     private void stressTestSearchForUser(int insertions) {
-        //        readString("Enter any key to stress test searchForUser (matches on first name, last name, and email) "
-//        		+ " \nSearching for each user by first name in order by id ascending.");
+        readString("Enter any key to stress test searchForUser (matches on first name, last name, and email) "
+        + " \nSearching for each user by first name in order by id ascending.");
 
-        // searchForUser
         for (int i = 1; i <= insertions; i++) {
             try {
                 searchForUser(new ArrayList<String>(Arrays.asList("fname " + i)));
@@ -796,14 +789,13 @@ public class FaceSpace {
     }
 
     private void stressTestThreeDegrees(int insertions) throws SQLException {
-        //        readString("Enter any key to stress test threeDegrees" +
-//        "\nWill first add a user with id " + insertions+1 + " and a user with id " + insertions+2 +
-//        "\n" + insertions+1 + " will initiate a friendship with user " + insertions + " and user " +
-//        insertions+2 + "." +
-//        "\n threeDegrees will then be invoked to find a path between user " + insertions + " and " +
-//        "user " + insertions+2);
+        readString("Enter any key to stress test threeDegrees" +
+        "\nWill first add a user with id " + insertions+1 + " and a user with id " + insertions+2 +
+        "\n" + insertions+1 + " will initiate a friendship with user " + insertions + " and user " +
+        insertions+2 + "." +
+        "\n threeDegrees will then be invoked to find a path between user " + insertions + " and " +
+        "user " + insertions+2);
 
-        // threeDegrees
         // create user insertions+1
         Timestamp dob = randomTimestamp(Timestamp.valueOf("1950-01-01 00:00:00"), Timestamp.valueOf("2000-01-01 00:00:00"));
         Timestamp lastOn = randomTimestamp(Timestamp.valueOf("2013-01-01 00:00:00"), Timestamp.valueOf("2016-01-01 00:00:00"));
@@ -824,9 +816,9 @@ public class FaceSpace {
     }
 
     private void stressTestTopMessages(int insertions, int topUsers, Random rand) throws SQLException {
-		//        readString("Enter any key to stressTest topMessagers." +
-		//        "\n Will first insert " + insertions + " messages to be sent by user " + insertions + " to random users." +
-		//        "\nThey will then be the top messager for the queries testing on the last year, last two years, and last three years");
+		        readString("Enter any key to stressTest topMessagers." +
+		        "\n Will first insert " + insertions + " messages to be sent by user " + insertions + " to random users." +
+		        "\nThey will then be the top messager for the queries testing on the last year, last two years, and last three years");
 
         for (int i = 0; i < insertions; i++) {
             try {
@@ -846,8 +838,9 @@ public class FaceSpace {
     }
 
     private void stressTestDropUser(int insertions) throws SQLException {
-        //        readString("Enter any key to stress test dropUsers." +
-//        "\nWill drop all users and then display all tables");
+                readString("Enter any key to stress test dropUsers." +
+        "\nWill drop all users and then display all tables");
+
         displayTableCount(TableType.PROFILES);
         for (int i = 1; i <= insertions + 2; i++) {
             try {
@@ -859,8 +852,7 @@ public class FaceSpace {
     }
 
     private void printFinalResults() throws SQLException {
-        // display profiles
-//        readString("Enter any key to display users");
+        readString("Enter any key to display users");
 
         query = "SELECT * FROM Profiles";
         prepStatement = connection.prepareStatement(query);
@@ -870,7 +862,7 @@ public class FaceSpace {
             System.out.println(p.toString());
         }
         // display friends
-//        readString("Enter any key to display friendships");
+        readString("Enter any key to display friendships");
 
         query = "SELECT * FROM Friends";
         prepStatement = connection.prepareStatement(query);
@@ -880,7 +872,7 @@ public class FaceSpace {
             System.out.println(f.toString());
         }
         // display groups
-//        readString("Enter any key to display groups (note that this is should be the only non-empty table");
+        readString("Enter any key to display groups (note that this is should be the only non-empty table");
 
         query = "SELECT * FROM Groups";
         prepStatement = connection.prepareStatement(query);
@@ -890,7 +882,7 @@ public class FaceSpace {
             System.out.println(g.toString());
         }
         // display members
-//        readString("Enter any key to display members");
+        readString("Enter any key to display members");
 
         query = "SELECT * FROM Members";
         prepStatement = connection.prepareStatement(query);
@@ -900,7 +892,7 @@ public class FaceSpace {
             System.out.println(m.toString());
         }
         // display messages
-//        readString("Enter any key to display messages");
+        readString("Enter any key to display messages");
 
         query = "SELECT * FROM Messages";
         prepStatement = connection.prepareStatement(query);
